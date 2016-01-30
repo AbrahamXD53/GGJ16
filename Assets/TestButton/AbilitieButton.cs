@@ -3,11 +3,15 @@ using System.Collections;
 
 public class AbilitieButton : MonoBehaviour {
 
-    private RectTransform fade;
-    
+    public float secondsForFade;
+
+    private float seconds;
 	// Use this for initialization
 	void Start () {
-        fade = GetComponent<RectTransform>();
+        seconds = 1 / secondsForFade;
+
+        Animator myAnimator = GetComponent<Animator>();
+        myAnimator.SetFloat("myspeed", seconds);
 	}
 	
 	// Update is called once per frame
