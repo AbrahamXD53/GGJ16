@@ -18,10 +18,19 @@ public class Reaction {
     {
         Counter--;
     }
+
+    //function to be called before Apply function
     public bool IsCool()
     {
         return Counter <= 0;
     }
+
+    /// <summary>
+    /// A function that applies the reaction directly to a GameManager
+    /// </summary>
+    /// <param name="mgr">
+    /// the manager to apply the function 
+    /// </param>
     public void Apply(GameManager mgr)
     {
         Counter = CoolDown;
