@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour {
 			Destroy (gameObject);   
 		}
 
-		// Que no se elimine este objeto al cargar nivel
+		// Que no se elimine este objeto al cargar escenas
 		DontDestroyOnLoad (gameObject);
 
 		// Cargar Nivel Inicial
@@ -56,9 +56,9 @@ public class GameManager : MonoBehaviour {
 		if (!isGameOver) {
 			turnTime -= Time.deltaTime;
 			elapsedTime += Time.deltaTime;
-
+			Debug.Log (elapsedTime.ToString ());
 			if (elapsedTime >= GAME_DURATION) {
-				
+				Debug.Log ("Se acabo el Tiempo");
 				if (teamGoals > enemyGoals) {
 					// Nivel superado, cargar siguiente
 					levelNumber++;
