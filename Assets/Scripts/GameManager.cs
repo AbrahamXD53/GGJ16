@@ -77,7 +77,7 @@ public class GameManager : MonoBehaviour {
     #endregion
 	Dictionary<int, GameEvent> levelEvents = new Dictionary<int, GameEvent> ();
     bool eventComing = false;
-    int eventPeriod = 2;
+    int eventPeriod = 4;
 
     #region Levels
     static List<Level> levels = new List<Level>(){
@@ -187,7 +187,7 @@ public class GameManager : MonoBehaviour {
                     eventComing = true;
                 }
 
-                Debug.Log ("Paso un turno, La suerte es: " + luck.ToString() + " El avance es: " + progress.ToString() + " La pipi: " + pee.ToString());
+                Debug.Log ("Suerte: " + luck.ToString() + " Avance: " + progress.ToString() + " pipi: " + pee.ToString());
                 if (eventComing)
                     Debug.Log("Evento se acerca.");
             }
@@ -216,8 +216,12 @@ public class GameManager : MonoBehaviour {
             if (newEvent != null)
                 levelEvents.Add(eventsTime, newEvent);
         }
-        // Resetear cooldowns
 
+        // Resetear cooldowns
+        foreach (KeyValuePair<string, Reaction> kvp in reactions)
+        {
+            kvp.Value.Cool();
+        }
     }
 
 	void AddLuck(float amount){
@@ -238,7 +242,7 @@ public class GameManager : MonoBehaviour {
 
 	void ChangeProgress(int amount){
 		int randomNumber = Random.Range (0, 101);
-		Debug.Log (randomNumber);
+		//Debug.Log (randomNumber);
 		if (randomNumber <= luck) {
 			AddProgress (currentLevel.deltaProgress);
 		} 

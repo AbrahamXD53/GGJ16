@@ -7,8 +7,8 @@ using System.Collections.Generic;
 public class Reaction {
 
     static List<Reaction> reactions = new List<Reaction>();
-    int CoolDown;
-    int Counter;
+    int coolDown;
+    int counter;
     Action<GameManager> action;
 
 
@@ -20,21 +20,21 @@ public class Reaction {
     {
         reactions.Add(this);
         this.action = action;
-        this.CoolDown = CoolDown;
+        this.coolDown = CoolDown;
     }
 
 
     public void addSecond()
     {
-        Counter--;
-		if (Counter < 0)
-			Counter = 0;
+        counter--;
+		if (counter < 0)
+			counter = 0;
     }
 
     //function to be called before Apply function
     public bool IsCool()
     {
-        return Counter <= 0;
+        return counter <= 0;
     }
 
     /// <summary>
@@ -45,9 +45,12 @@ public class Reaction {
     /// </param>
     public void Apply(GameManager mgr)
     {
-        Counter = CoolDown;
+        counter = coolDown;
         action(mgr);
     }
 
-    
+    public void Cool()
+    {
+        counter = 0;
+    }
 }
