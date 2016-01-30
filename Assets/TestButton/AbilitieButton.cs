@@ -8,17 +8,17 @@ public class AbilitieButton : MonoBehaviour {
 
     private float seconds;
     private Image myImageButton;
-	// Use this for initialization
-	void Start () {
+    private Animator myAnimator;
+    // Use this for initialization
+    void Start () {
         //Cambiar color a desactivado
-        myImageButton = GetComponent<Image>();
-        Color temp = myImageButton.color;
+        myImageButton = GetComponent<Image>(); Color temp = myImageButton.color;
         temp.a = 0.5f;
         myImageButton.color = temp;
 
         seconds = 1 / secondsForFade;
 
-        Animator myAnimator = GetComponent<Animator>();
+        myAnimator = GetComponent<Animator>();
         myAnimator.SetFloat("myspeed", seconds);
 	}
 	
@@ -32,5 +32,9 @@ public class AbilitieButton : MonoBehaviour {
         Color temp = myImageButton.color;
         temp.a = 1f;
         myImageButton.color = temp;
+
+        myAnimator.SetBool("isActivated", true);
+        GameObject childMask = transform.GetChild(1).gameObject;
+        childMask.SetActive(false);
     }
 }
