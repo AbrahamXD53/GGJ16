@@ -35,15 +35,6 @@ public class GameManager : MonoBehaviour {
 
 	Reaction nextTurnReaction = null;
 
-    static Reaction beer = new Reaction(5,
-        k =>
-        {
-            k.pee += DELTA_PEE;
-            k.luck += 2 * k.currentLevel.deltaLuck;
-            Debug.Log("Tomaste cerveza, pipi +" + DELTA_PEE + " y suerte +" + 2 * k.currentLevel.deltaLuck);
-        }
-    );
-
     #region Reactions
     static Dictionary<string, Reaction> reactions = new Dictionary<string, Reaction>{
 		{"beer",
@@ -62,27 +53,37 @@ public class GameManager : MonoBehaviour {
     #region GameEvents
     static Dictionary<string, GameEvent> events = new Dictionary<string, GameEvent>{
 		{"teamGoal",
-        new GameEvent(
-            new Dictionary<Reaction, int>{
-                {beer, 50},
-            },
-            k => { k.teamGoals++; k.progress = INITIAL_PROGRESS; Debug.Log("Gol Anotado"); },
-            k => { k.progress -= FAIL_PROGRESS; Debug.Log("Gol Fallado"); }
-        )
+            new GameEvent(
+                new Dictionary<Reaction, int>{
+                    {reactions["beer"], 50},
+                },
+                k => { k.teamGoals++; k.progress = INITIAL_PROGRESS; Debug.Log("Gol Anotado"); },
+                k => { k.progress -= FAIL_PROGRESS; Debug.Log("Gol Fallado"); }
+            )
+        },
+        {"enemyGoal",
+            new GameEvent(
+                new Dictionary<Reaction, int>{
+                    {reactions["beer"], 50},
+                },
+                k => { k.progress -= FAIL_PROGRESS; Debug.Log("Gol enemigo Fallado"); },
+                k => { k.enemyGoals++; k.progress = INITIAL_PROGRESS ; Debug.Log("Gol enemigo Anotado"); }
+            )
         },
         {"pass",
-        new GameEvent(
-            new Dictionary<Reaction, int>{
-                {beer, 50},
-            },
-            k => {k.AddProgress(k.currentLevel.deltaProgress); Debug.Log("Pase Exitoso"); },
-            k => {k.AddProgress(-k.currentLevel.deltaProgress); Debug.Log("Pase Fallado"); }
-        )
+            new GameEvent(
+                new Dictionary<Reaction, int>{
+                    {reactions["beer"], 50},
+                },
+                k => {k.AddProgress(k.currentLevel.deltaProgress); Debug.Log("Pase Exitoso"); },
+                k => {k.AddProgress(-k.currentLevel.deltaProgress); Debug.Log("Pase Fallado"); }
+            )
         }
     };
     #endregion
 	Dictionary<int, GameEvent> levelEvents = new Dictionary<int, GameEvent> ();
 
+    #region Levels
     static List<Level> levels = new List<Level>(){
         new Level(1, 5, -1 ,10, new List<Reaction> { reactions["beer"] }, new Dictionary<GameEvent, int> {{events["pass"],80}}),
         new Level(1, 5, -1 ,10, null, null),
@@ -90,12 +91,12 @@ public class GameManager : MonoBehaviour {
 		/*new Level(1, 5, 1 ,10, new List<Reaction>{reactions["beer"], reactions["flag"]},
 			new Dictionary<GameEvent, int>{{events["pass"], 80}, {events["sweep"], 70}})*/
 	};
+    #endregion
 
-	public static GameManager instance = null;         
+    public static GameManager instance = null;         
 
 	void Awake()
 	{
-
 		// Verifica si existe instance
 		if (instance == null)
 			// si no existe instance asigna a esta
@@ -120,7 +121,7 @@ public class GameManager : MonoBehaviour {
 				Debug.Log ("Cerveza recargada");
 
 			// Utiliza reacción
-			if (nextTurnReaction == null && Input.GetKey (KeyCode.Space) && reactions["beer"].IsCool()) {
+			if (nextTurnReaction == null && Input.GetKey (KeyCode.A) && reactions["beer"].IsCool()) {
 				nextTurnReaction = reactions["beer"];
 			}
 
@@ -162,7 +163,6 @@ public class GameManager : MonoBehaviour {
 				if (progress >= 100) {
 					events["teamGoal"].Apply (this, reactions["beer"]); // La acción de teamGoalEvent modifica el valor de progress y Score.
 					Debug.Log("Tiro a gol equipo nuestro");
-
 				}
 				else if (progress <= 0) {
 					events["enemyGoal"].Apply (this, reactions["beer"]); // La acción de enemyGoalEvent modifica el valor de progress y Score.
@@ -188,13 +188,19 @@ public class GameManager : MonoBehaviour {
 
 		// Cargar eventos
 		int eventsTime = 0;
-		while (eventsTime < GAME_DURATION) {
+        levelEvents.Clear();
+        while (eventsTime < GAME_DURATION) {
 			eventsTime += currentLevel.eventDelay + Random.Range (0, currentLevel.eventDelay/2);
-			levelEvents.Clear ();
-			levelEvents.Add (eventsTime, currentLevel.GetEvent ());
+            Debug.Log("time: " + eventsTime);
+            GameEvent nextEvent = currentLevel.GetEvent();
+            if (nextEvent != null)
+                levelEvents.Add (eventsTime, nextEvent);
 		}
-		Debug.Log (events.ToString ());
-	}
+        Debug.Log("");
+
+        // Resetear cooldowns
+
+    }
 
 	void AddLuck(float amount){
 		luck += amount;
@@ -235,5 +241,10 @@ public class GameManager : MonoBehaviour {
 	int GetProgress(){
 		return progress;
 	}
+
+    float GetElapsedTime()
+    {
+        return elapsedTime;
+    }
 
 }
