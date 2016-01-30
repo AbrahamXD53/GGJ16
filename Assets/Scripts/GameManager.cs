@@ -7,7 +7,11 @@ using System.Collections.Generic;
 // controlar las variables criticas del juego (Salud, Avance y Orina)
 
 public class GameManager : MonoBehaviour {
-	
+
+	public const int INITIAL_LUCK = 50;
+	public const int INITIAL_PROGRESS = 50;
+	public const int FAIL_PROGRESS = 30;
+
 	int luck;
 	int pee;
 	int progress;
@@ -17,20 +21,39 @@ public class GameManager : MonoBehaviour {
 	int enemyGoals = 0;
 	
 	// Duración del juego (Nivel) en segundos
-	const float GAME_DURATION = 90.0f;
+	const float GAME_DURATION = 60.0f;
 	float elapsedTime;
 
 	float turnTime;
 
 	bool isGameOver = false;
 
+	Reaction nextTurnReaction = null;
+
+	static Reaction beer = new Reaction(5, k => { k.pee += 20; k.luck += 5; Debug.Log("Tomaste cerveza, pipi +20 y suerte +5");});
+
+	static GameEvent teamGoalEvent = new GameEvent(new Dictionary<Reaction, int>{{beer, 90}},
+		k => {k.teamGoals++; k.progress = INITIAL_PROGRESS; Debug.Log("Gol Anotado");},
+		k => {k.progress-=FAIL_PROGRESS; Debug.Log("Gol Fallado");}
+	);
+
+	static GameEvent enemyGoalEvent = new GameEvent(new Dictionary<Reaction, int>{{beer, 90}},
+		k => {k.enemyGoals++; k.progress = INITIAL_PROGRESS; Debug.Log("Gol Anotado");},
+		k => {k.progress+=FAIL_PROGRESS; Debug.Log("Gol Fallado");}
+	);
+
 	// Estos niveles son de prueba
-	static List<Level> levels = new List<Level>(){new Level(1.0f, 2.0f, 3 ,4), new Level(1.0f, 2.0f, 3 ,4), new Level(1.0f, 2.0f, 3 ,4)};
+	static List<Level> levels = new List<Level>(){
+		new Level(1, -1 ,10), 
+		new Level(1, -3 ,5), 
+		new Level(1, -3 ,5)
+	};
+
 	// Esta instancia tiene referencias a las reacciones y eventos disponibles en cada nivel,
 	// así como la variación de luck, pee y progress y el retardo de turno.
 	Level currentLevel;
 
-	//GameEvent CurrentEvent = null;
+	int eventIndex;
 	//List<GameEvent> events = new List<GameEvent> ();
 
 	public static GameManager instance = null;         
@@ -45,7 +68,7 @@ public class GameManager : MonoBehaviour {
 			Destroy (gameObject);   
 		}
 
-		// Que no se elimine este objeto al cargar nivel
+		// Que no se elimine este objeto al cargar escenas
 		DontDestroyOnLoad (gameObject);
 
 		// Cargar Nivel Inicial
@@ -57,6 +80,15 @@ public class GameManager : MonoBehaviour {
 			turnTime -= Time.deltaTime;
 			elapsedTime += Time.deltaTime;
 
+			if (beer.IsCool ())
+				Debug.Log ("Cerveza recargada");
+
+			// Utiliza reacción
+			if (nextTurnReaction == null && Input.GetKey (KeyCode.Space) && beer.IsCool()) {
+				nextTurnReaction = beer;
+			}
+
+			// Fin del nivel
 			if (elapsedTime >= GAME_DURATION) {
 				
 				if (teamGoals > enemyGoals) {
@@ -79,17 +111,29 @@ public class GameManager : MonoBehaviour {
 				// Reinicia tiempo para siguiente turno
 				turnTime += currentLevel.turnDelay;
 
+				Reaction.Update ();
+
 				// Modificar los valores de la suerte y del progreso de acuerdo al nivel
 				AddLuck (currentLevel.deltaLuck);
-				ChangeProgress(currentLevel.deltaProgress);
+				ChangeProgress (currentLevel.deltaProgress);
+
+				if (nextTurnReaction != null) {
+					nextTurnReaction.Apply (this);
+					nextTurnReaction = null;
+				}
 
 				// Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
 				if (progress >= 100) {
-					// TeamGoal.action(this) // La acción de TeamGoal modifica el valor de progress y Score.
+					teamGoalEvent.Apply (this, beer); // La acción de teamGoalEvent modifica el valor de progress y Score.
+					Debug.Log("Tiro a gol equipo nuestro");
+
 				}
 				else if (progress <= 0) {
-					// EnemyGoal.action(this) // La acción de EnemyGoal modifica el valor de progress y Score. 
+					enemyGoalEvent.Apply (this, beer); // La acción de enemyGoalEvent modifica el valor de progress y Score.
+					Debug.Log("Tiro a gol equipo enemigo");
 				}
+
+				Debug.Log ("Paso un turno, La suerte es: " + luck.ToString() + " El avance es: " + progress.ToString() + " La pipi: " + pee.ToString());
 			}
 
 		}
@@ -98,14 +142,19 @@ public class GameManager : MonoBehaviour {
 	void LoadLevel (int levelNumber){
 		// Aquí se inicializan los valores del nivel
 		currentLevel = levels[levelNumber];
-		Debug.Log ("Se cargo el nivel " + levelNumber.ToString());
 		// reiniciar el tiempo de juego 
 		elapsedTime = 0;
 
-		// reiniciar el puntaje
-		teamGoals = enemyGoals = 0;
+		// reiniciar variables
+		teamGoals = enemyGoals = pee = eventIndex = 0;
+		luck = INITIAL_LUCK;
+		progress = INITIAL_PROGRESS;
 
 		// Cargar eventos
+		int eventsTime = 0;
+		//while (eventsTime < GAME_DURATION) {
+			
+		//}
 	}
 
 	void AddLuck(int amount){
@@ -117,16 +166,17 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void ChangeProgress(int amount){
-		int randomNumber = (int)Random.Range (0.0f, 100.0f);
-		if (randomNumber < luck) {
-			progress -= currentLevel.deltaProgress;
-			if (progress < 0)
-				progress = 0;
-		} 
-		else {
+		int randomNumber = Random.Range (0, 101);
+		Debug.Log (randomNumber);
+		if (randomNumber <= luck) {
 			progress += currentLevel.deltaProgress;
 			if (progress > 100)
 				progress = 100;
+		} 
+		else {
+			progress -= currentLevel.deltaProgress;
+			if (progress < 0)
+				progress = 0;
 		}
 	}
 
