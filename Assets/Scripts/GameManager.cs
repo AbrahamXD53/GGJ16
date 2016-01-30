@@ -98,7 +98,7 @@ public class GameManager : MonoBehaviour {
 	void LoadLevel (int levelNumber){
 		// Aquí se inicializan los valores del nivel
 		currentLevel = levels[levelNumber];
-
+		Debug.Log ("Se cargo el nivel " + levelNumber.ToString());
 		// reiniciar el tiempo de juego 
 		elapsedTime = 0;
 
