@@ -1,19 +1,28 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 public class Reaction {
 
+    static List<Reaction> reactions = new List<Reaction>();
+    int CoolDown;
+    int Counter;
+    Action<GameManager> action;
 
+
+    public static void Update()
+    {
+        foreach (var reaction in reactions) reaction.addSecond();
+    }
     public Reaction(int CoolDown, Action<GameManager> action)
     {
+        reactions.Add(this);
         this.action = action;
         this.CoolDown = CoolDown;
     }
 
-    int CoolDown;
-    int Counter;
-    Action<GameManager> action;
+
     public void addSecond()
     {
         Counter--;
