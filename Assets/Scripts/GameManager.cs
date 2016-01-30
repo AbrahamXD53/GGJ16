@@ -7,7 +7,10 @@ using System.Collections.Generic;
 // controlar las variables criticas del juego (Salud, Avance y Orina)
 
 public class GameManager : MonoBehaviour {
-	
+
+	public const int INITIAL_LUCK = 50;
+	public const int INITIAL_PROGRESS = 50;
+
 	int luck;
 	int pee;
 	int progress;
@@ -17,7 +20,7 @@ public class GameManager : MonoBehaviour {
 	int enemyGoals = 0;
 	
 	// Duración del juego (Nivel) en segundos
-	const float GAME_DURATION = 90.0f;
+	const float GAME_DURATION = 60.0f;
 	float elapsedTime;
 
 	float turnTime;
@@ -25,12 +28,17 @@ public class GameManager : MonoBehaviour {
 	bool isGameOver = false;
 
 	// Estos niveles son de prueba
-	static List<Level> levels = new List<Level>(){new Level(1.0f, 2.0f, 3 ,4), new Level(1.0f, 2.0f, 3 ,4), new Level(1.0f, 2.0f, 3 ,4)};
+	static List<Level> levels = new List<Level>(){
+		new Level(1.0f, -1 ,10), 
+		new Level(1.0f, -3 ,5), 
+		new Level(1.0f, -3 ,5)
+	};
+
 	// Esta instancia tiene referencias a las reacciones y eventos disponibles en cada nivel,
 	// así como la variación de luck, pee y progress y el retardo de turno.
 	Level currentLevel;
 
-	//GameEvent CurrentEvent = null;
+	int eventIndex;
 	//List<GameEvent> events = new List<GameEvent> ();
 
 	public static GameManager instance = null;         
@@ -56,9 +64,10 @@ public class GameManager : MonoBehaviour {
 		if (!isGameOver) {
 			turnTime -= Time.deltaTime;
 			elapsedTime += Time.deltaTime;
-			Debug.Log (elapsedTime.ToString ());
+			// Debug.Log (elapsedTime.ToString ());
+
 			if (elapsedTime >= GAME_DURATION) {
-				Debug.Log ("Se acabo el Tiempo");
+				
 				if (teamGoals > enemyGoals) {
 					// Nivel superado, cargar siguiente
 					levelNumber++;
@@ -76,20 +85,27 @@ public class GameManager : MonoBehaviour {
 
 			// Cada turno
 			if (turnTime <= 0) {
+				
 				// Reinicia tiempo para siguiente turno
 				turnTime += currentLevel.turnDelay;
 
 				// Modificar los valores de la suerte y del progreso de acuerdo al nivel
 				AddLuck (currentLevel.deltaLuck);
-				ChangeProgress(currentLevel.deltaProgress);
+				ChangeProgress (currentLevel.deltaProgress);
 
 				// Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
 				if (progress >= 100) {
 					// TeamGoal.action(this) // La acción de TeamGoal modifica el valor de progress y Score.
+					Debug.Log("Tiro a gol equipo nuestro");
+					progress = INITIAL_PROGRESS;
 				}
 				else if (progress <= 0) {
 					// EnemyGoal.action(this) // La acción de EnemyGoal modifica el valor de progress y Score. 
+					Debug.Log("Tiro a gol equipo enemigo");
+					progress = INITIAL_PROGRESS;
 				}
+
+				Debug.Log ("Paso un turno, La suerte es: " + luck.ToString() + " El avance es: " + progress.ToString());
 			}
 
 		}
@@ -98,12 +114,13 @@ public class GameManager : MonoBehaviour {
 	void LoadLevel (int levelNumber){
 		// Aquí se inicializan los valores del nivel
 		currentLevel = levels[levelNumber];
-		Debug.Log ("Se cargo el nivel " + levelNumber.ToString());
 		// reiniciar el tiempo de juego 
 		elapsedTime = 0;
 
-		// reiniciar el puntaje
-		teamGoals = enemyGoals = 0;
+		// reiniciar variables
+		teamGoals = enemyGoals = pee = eventIndex = 0;
+		luck = INITIAL_LUCK;
+		progress = INITIAL_PROGRESS;
 
 		// Cargar eventos
 	}
@@ -118,15 +135,16 @@ public class GameManager : MonoBehaviour {
 
 	void ChangeProgress(int amount){
 		int randomNumber = (int)Random.Range (0.0f, 100.0f);
+		Debug.Log (randomNumber);
 		if (randomNumber < luck) {
-			progress -= currentLevel.deltaProgress;
-			if (progress < 0)
-				progress = 0;
-		} 
-		else {
 			progress += currentLevel.deltaProgress;
 			if (progress > 100)
 				progress = 100;
+		} 
+		else {
+			progress -= currentLevel.deltaProgress;
+			if (progress < 0)
+				progress = 0;
 		}
 	}
 
