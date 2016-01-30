@@ -26,11 +26,11 @@ public class Warning : MonoBehaviour {
     
     IEnumerator Epilepsia()
     {
-        print("called");
+        //print("called");
         while((epCount--)>1)
         {
             m_camera.backgroundColor = new Color(Random.Range(20,100)/100f, Random.Range(20, 100) / 100f, Random.Range(20, 100) / 100f, 1);
-            print(m_camera.backgroundColor);
+            //print(m_camera.backgroundColor);
             yield return new WaitForSeconds(interval);
         }
         m_camera.backgroundColor = new Color(1,1,1);

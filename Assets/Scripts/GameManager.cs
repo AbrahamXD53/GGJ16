@@ -80,6 +80,9 @@ public class GameManager : MonoBehaviour {
 			turnTime -= Time.deltaTime;
 			elapsedTime += Time.deltaTime;
 
+			if (beer.IsCool ())
+				Debug.Log ("Cerveza recargada");
+
 			// Utiliza reacción
 			if (nextTurnReaction == null && Input.GetKey (KeyCode.Space) && beer.IsCool()) {
 				nextTurnReaction = beer;
@@ -107,6 +110,8 @@ public class GameManager : MonoBehaviour {
 			if (turnTime <= 0) {
 				// Reinicia tiempo para siguiente turno
 				turnTime += currentLevel.turnDelay;
+
+				Reaction.Update ();
 
 				// Modificar los valores de la suerte y del progreso de acuerdo al nivel
 				AddLuck (currentLevel.deltaLuck);

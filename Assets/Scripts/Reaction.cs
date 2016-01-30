@@ -26,6 +26,8 @@ public class Reaction {
     public void addSecond()
     {
         Counter--;
+		if (Counter < 0)
+			Counter = 0;
     }
 
     //function to be called before Apply function
