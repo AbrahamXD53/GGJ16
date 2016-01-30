@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour {
 	public const int INITIAL_LUCK = 50;
 	public const int INITIAL_PROGRESS = 50;
 	public const int FAIL_PROGRESS = 30;
+
 	int luck;
 	int pee;
 	int progress;
@@ -27,8 +28,9 @@ public class GameManager : MonoBehaviour {
 
 	bool isGameOver = false;
 
+	Reaction nextTurnReaction = null;
 
-	static Reaction beer = new Reaction(5, k => { k.pee += 20; k.luck += 5;});
+	static Reaction beer = new Reaction(5, k => { k.pee += 20; k.luck += 5; Debug.Log("Tomaste cerveza, pipi +20 y suerte +5");});
 
 	static GameEvent teamGoalEvent = new GameEvent(new Dictionary<Reaction, int>{{beer, 90}},
 		k => {k.teamGoals++; k.progress = INITIAL_PROGRESS; Debug.Log("Gol Anotado");},
@@ -42,9 +44,9 @@ public class GameManager : MonoBehaviour {
 
 	// Estos niveles son de prueba
 	static List<Level> levels = new List<Level>(){
-		new Level(1.0f, -1 ,10), 
-		new Level(1.0f, -3 ,5), 
-		new Level(1.0f, -3 ,5)
+		new Level(1, -1 ,10), 
+		new Level(1, -3 ,5), 
+		new Level(1, -3 ,5)
 	};
 
 	// Esta instancia tiene referencias a las reacciones y eventos disponibles en cada nivel,
@@ -77,8 +79,13 @@ public class GameManager : MonoBehaviour {
 		if (!isGameOver) {
 			turnTime -= Time.deltaTime;
 			elapsedTime += Time.deltaTime;
-			// Debug.Log (elapsedTime.ToString ());
 
+			// Utiliza reacción
+			if (nextTurnReaction == null && Input.GetKey (KeyCode.Space) && beer.IsCool()) {
+				nextTurnReaction = beer;
+			}
+
+			// Fin del nivel
 			if (elapsedTime >= GAME_DURATION) {
 				
 				if (teamGoals > enemyGoals) {
@@ -98,13 +105,17 @@ public class GameManager : MonoBehaviour {
 
 			// Cada turno
 			if (turnTime <= 0) {
-				
 				// Reinicia tiempo para siguiente turno
 				turnTime += currentLevel.turnDelay;
 
 				// Modificar los valores de la suerte y del progreso de acuerdo al nivel
 				AddLuck (currentLevel.deltaLuck);
 				ChangeProgress (currentLevel.deltaProgress);
+
+				if (nextTurnReaction != null) {
+					nextTurnReaction.Apply (this);
+					nextTurnReaction = null;
+				}
 
 				// Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
 				if (progress >= 100) {
@@ -117,7 +128,7 @@ public class GameManager : MonoBehaviour {
 					Debug.Log("Tiro a gol equipo enemigo");
 				}
 
-				Debug.Log ("Paso un turno, La suerte es: " + luck.ToString() + " El avance es: " + progress.ToString());
+				Debug.Log ("Paso un turno, La suerte es: " + luck.ToString() + " El avance es: " + progress.ToString() + " La pipi: " + pee.ToString());
 			}
 
 		}
@@ -135,6 +146,10 @@ public class GameManager : MonoBehaviour {
 		progress = INITIAL_PROGRESS;
 
 		// Cargar eventos
+		int eventsTime = 0;
+		//while (eventsTime < GAME_DURATION) {
+			
+		//}
 	}
 
 	void AddLuck(int amount){

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 public class Level{
 
-	public float turnDelay;
+	public int turnDelay;
+	public int eventDelay;
 	public int deltaLuck;
 	public int deltaProgress;
 
@@ -13,14 +14,14 @@ public class Level{
     //List of valid reactions in this level
     List<Reaction> reactions;
 
-	public Level(float turnDelay, int deltaLuck, int deltaProgress)
+	public Level(int turnDelay, int deltaLuck, int deltaProgress)
 	{
 		this.turnDelay = turnDelay;
 		this.deltaLuck = deltaLuck;
 		this.deltaProgress = deltaProgress;
 	}
 
-    public Level(float turnDelay, int deltaLuck, int deltaProgress,
+    public Level(int turnDelay, int deltaLuck, int deltaProgress,
         List<Reaction> validReactions, Dictionary<GameEvent, int> EventProbability)
     {
 		this.turnDelay = turnDelay;
