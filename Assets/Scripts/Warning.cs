@@ -19,8 +19,28 @@ public class Warning : MonoBehaviour {
 	void Update () {
 	    if(Input.anyKeyDown || (Input.touchCount>0 && Input.GetTouch(0).phase==TouchPhase.Began))
         {
+<<<<<<< HEAD
+<<<<<<< HEAD
+            if (epCount > 1)
+            {
+                iTween.ShakePosition(txtWarning.transform.parent.GetChild(1).gameObject, new Vector3(Random.Range(0, 20), Random.Range(0, 20), 0), duration * 10);
+                StartCoroutine(Epilepsia());
+            }
+            else
+            {
+                //Cargar la escena chida
+                print("Cargar la chida");
+                SceneManager.LoadScene(1);
+                SceneManager.LoadScene(2,LoadSceneMode.Additive);
+            }
+=======
             iTween.ShakePosition(txtWarning.transform.parent.GetChild(1).gameObject, new Vector3(Random.Range(0, 20), Random.Range(0, 20), 0), duration*10);
             StartCoroutine(Epilepsia());
+>>>>>>> origin/master
+=======
+            iTween.ShakePosition(txtWarning.transform.parent.GetChild(1).gameObject, new Vector3(Random.Range(0, 20), Random.Range(0, 20), 0), duration*10);
+            StartCoroutine(Epilepsia());
+>>>>>>> a624c4821d7c5372ae7396ba40a56b32841eb412
         }
 	}
     
