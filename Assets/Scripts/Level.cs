@@ -5,7 +5,7 @@ public class Level{
 
 	public int turnDelay;
 	public int eventDelay;
-	public int deltaLuck;
+	public float deltaLuck;
 	public int deltaProgress;
 
     //List of Events and its probabilities in the Level
@@ -14,17 +14,11 @@ public class Level{
     //List of valid reactions in this level
     List<Reaction> reactions;
 
-	public Level(int turnDelay, int deltaLuck, int deltaProgress)
-	{
-		this.turnDelay = turnDelay;
-		this.deltaLuck = deltaLuck;
-		this.deltaProgress = deltaProgress;
-	}
-
-    public Level(int turnDelay, int deltaLuck, int deltaProgress,
+	public Level(int turnDelay, int eventDelay, float deltaLuck,  int deltaProgress,
         List<Reaction> validReactions, Dictionary<GameEvent, int> EventProbability)
     {
 		this.turnDelay = turnDelay;
+		this.eventDelay = eventDelay;
 		this.deltaLuck = deltaLuck;
 		this.deltaProgress = deltaProgress;
         this.reactions = validReactions;
