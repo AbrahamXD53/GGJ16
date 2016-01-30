@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-public class GameEvent : MonoBehaviour {
+public class GameEvent {
      
     Dictionary<Reaction, int> reactions;
     Action<GameManager> actionTrue;
@@ -13,10 +13,15 @@ public class GameEvent : MonoBehaviour {
     {
         this.actionTrue = actionSuccess;
         this.actionFalse = actionFail;
+		this.reactions = reactions;
     }
     public void Apply(GameManager man, Reaction react)
     {
-        if (react != null && reactions.ContainsKey(react) && new System.Random().Next(100) <= reactions[react]) actionTrue(man);
+		int randomNumber = UnityEngine.Random.Range (0, 101);
+		if (react != null && reactions.ContainsKey (react) && randomNumber <= reactions [react]) {
+			actionTrue (man);
+			return;
+		}
         actionFalse(man);
     }
 }

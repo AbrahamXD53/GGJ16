@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour {
 
 	public const int INITIAL_LUCK = 50;
 	public const int INITIAL_PROGRESS = 50;
-
+	public const int FAIL_PROGRESS = 30;
 	int luck;
 	int pee;
 	int progress;
@@ -26,6 +26,19 @@ public class GameManager : MonoBehaviour {
 	float turnTime;
 
 	bool isGameOver = false;
+
+
+	static Reaction beer = new Reaction(5, k => { k.pee += 20; k.luck += 5;});
+
+	static GameEvent teamGoalEvent = new GameEvent(new Dictionary<Reaction, int>{{beer, 90}},
+		k => {k.teamGoals++; k.progress = INITIAL_PROGRESS; Debug.Log("Gol Anotado");},
+		k => {k.progress-=FAIL_PROGRESS; Debug.Log("Gol Fallado");}
+	);
+
+	static GameEvent enemyGoalEvent = new GameEvent(new Dictionary<Reaction, int>{{beer, 90}},
+		k => {k.enemyGoals++; k.progress = INITIAL_PROGRESS; Debug.Log("Gol Anotado");},
+		k => {k.progress+=FAIL_PROGRESS; Debug.Log("Gol Fallado");}
+	);
 
 	// Estos niveles son de prueba
 	static List<Level> levels = new List<Level>(){
@@ -95,14 +108,13 @@ public class GameManager : MonoBehaviour {
 
 				// Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
 				if (progress >= 100) {
-					// TeamGoal.action(this) // La acción de TeamGoal modifica el valor de progress y Score.
+					teamGoalEvent.Apply (this, beer); // La acción de teamGoalEvent modifica el valor de progress y Score.
 					Debug.Log("Tiro a gol equipo nuestro");
-					progress = INITIAL_PROGRESS;
+
 				}
 				else if (progress <= 0) {
-					// EnemyGoal.action(this) // La acción de EnemyGoal modifica el valor de progress y Score. 
+					enemyGoalEvent.Apply (this, beer); // La acción de enemyGoalEvent modifica el valor de progress y Score.
 					Debug.Log("Tiro a gol equipo enemigo");
-					progress = INITIAL_PROGRESS;
 				}
 
 				Debug.Log ("Paso un turno, La suerte es: " + luck.ToString() + " El avance es: " + progress.ToString());
@@ -134,9 +146,9 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void ChangeProgress(int amount){
-		int randomNumber = (int)Random.Range (0.0f, 100.0f);
+		int randomNumber = Random.Range (0, 101);
 		Debug.Log (randomNumber);
-		if (randomNumber < luck) {
+		if (randomNumber <= luck) {
 			progress += currentLevel.deltaProgress;
 			if (progress > 100)
 				progress = 100;
