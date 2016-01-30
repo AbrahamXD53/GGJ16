@@ -41,6 +41,7 @@ public class Warning : MonoBehaviour
                 //Cargar la escena chida
                 print("Cargar la chida");
                 SceneManager.LoadScene(1);
+                SceneManager.LoadScene(2,LoadSceneMode.Additive);
             }
         }
 
