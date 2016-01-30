@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 
+//un cambio menor
 public class Reaction {
 
     static List<Reaction> reactions = new List<Reaction>();
