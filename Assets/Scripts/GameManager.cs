@@ -43,7 +43,7 @@ public class GameManager : MonoBehaviour {
     #endregion
 
     // Duración del juego (Nivel) en segundos
-    const float GAME_DURATION = 45.0f;
+    public const float GAME_DURATION = 45.0f;
 
     const float LUCK_MULTIPLIER = 2;
 
@@ -539,29 +539,5 @@ public class GameManager : MonoBehaviour {
     public bool GameOver()
     {
         return isGameOver;
-    }
-
-    //Metodo de prueba
-    public void nextReaction(Reaction reaction, int button)
-    {
-        if (nextTurnReaction == null)
-        {
-            if (reactions[BEER].IsCool())
-            {
-                nextTurnReaction = reactions[BEER];
-            }
-            else if (Input.GetKey(KeyCode.S) && reactions[SHOUT].IsCool())
-            {
-                nextTurnReaction = reactions[SHOUT];
-            }
-            else if (Input.GetKey(KeyCode.D) && reactions[FLAG].IsCool())
-            {
-                nextTurnReaction = reactions[FLAG];
-            }
-            else if (Input.GetKey(KeyCode.F) && reactions[CELEBRATE].IsCool())
-            {
-                nextTurnReaction = reactions[CELEBRATE];
-            }
-        }
     }
 }
