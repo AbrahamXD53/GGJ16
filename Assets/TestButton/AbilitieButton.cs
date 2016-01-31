@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class AbilitieButton : MonoBehaviour {
@@ -12,7 +13,8 @@ public class AbilitieButton : MonoBehaviour {
     // Use this for initialization
     void Start () {
         //Cambiar color a desactivado
-        myImageButton = GetComponent<Image>(); Color temp = myImageButton.color;
+        myImageButton = GetComponent<Image>();
+        Color temp = myImageButton.color;
         temp.a = 0.5f;
         myImageButton.color = temp;
 
@@ -36,5 +38,12 @@ public class AbilitieButton : MonoBehaviour {
         myAnimator.SetBool("isActivated", true);
         GameObject childMask = transform.GetChild(1).gameObject;
         childMask.SetActive(false);
+    }
+
+    public void Onclick()
+    {
+        myAnimator.SetBool("isActivated", false);
+        GameObject childMask = transform.GetChild(1).gameObject;
+        childMask.SetActive(true);
     }
 }
