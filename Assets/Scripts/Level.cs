@@ -40,4 +40,9 @@ public class Level{
 
     }
 
+    public bool HasReaction(Reaction reaction)
+    {
+        return reactions.Contains(reaction);
+    }
+
 }

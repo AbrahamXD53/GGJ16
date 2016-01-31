@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour {
 
-	public const int INITIAL_LUCK = 50;
+    public const int INITIAL_LUCK = 50;
 	public const int INITIAL_PROGRESS = 50;
 	public const int FAIL_PROGRESS = 30;
 	public const int DELTA_PEE = 20;
@@ -26,12 +26,6 @@ public class GameManager : MonoBehaviour {
 	float turnTime;
 
 	bool isGameOver = false;
-
-	public int levelNumber = 0;
-
-	// Esta instancia tiene referencias a las reacciones y eventos disponibles en cada nivel,
-	// así como la variación de luck, pee y progress y el retardo de turno.
-	Level currentLevel;
 
 	Reaction nextTurnReaction = null;
 
@@ -82,20 +76,28 @@ public class GameManager : MonoBehaviour {
     };
     #endregion
 	Dictionary<int, GameEvent> levelEvents = new Dictionary<int, GameEvent> ();
+    bool eventComing = false;
+    int eventPeriod = 4;
 
     #region Levels
     static List<Level> levels = new List<Level>(){
         new Level(1, 5, -1 ,10, new List<Reaction> { reactions["beer"] }, new Dictionary<GameEvent, int> {{events["pass"],80}}),
-        new Level(1, 5, -1 ,10, null, null),
-        new Level(1, 5, -1 ,10, null, null),
+        new Level(1, 5, -1 ,10, new List<Reaction> { reactions["beer"] }, new Dictionary<GameEvent, int> {{events["pass"],80}}),
+        new Level(1, 5, -1 ,10, new List<Reaction> { reactions["beer"] }, new Dictionary<GameEvent, int> {{events["pass"],80}}),
+        new Level(1, 5, -1 ,10, new List<Reaction> { reactions["beer"] }, new Dictionary<GameEvent, int> {{events["pass"],80}})
 		/*new Level(1, 5, 1 ,10, new List<Reaction>{reactions["beer"], reactions["flag"]},
 			new Dictionary<GameEvent, int>{{events["pass"], 80}, {events["sweep"], 70}})*/
 	};
     #endregion
+    public int levelNumber = 0;
+
+    // Esta instancia tiene referencias a las reacciones y eventos disponibles en cada nivel,
+    // así como la variación de luck, pee y progress y el retardo de turno.
+    Level currentLevel;
 
     public static GameManager instance = null;         
 
-	void Awake()
+	void Awake ()
 	{
 		// Verifica si existe instance
 		if (instance == null)
@@ -117,13 +119,12 @@ public class GameManager : MonoBehaviour {
 			turnTime -= Time.deltaTime;
 			elapsedTime += Time.deltaTime;
 
-			if (reactions["beer"].IsCool ())
-				Debug.Log ("Cerveza recargada");
-
-			// Utiliza reacción
-			if (nextTurnReaction == null && Input.GetKey (KeyCode.A) && reactions["beer"].IsCool()) {
-				nextTurnReaction = reactions["beer"];
-			}
+            // Utiliza reacción
+            if (nextTurnReaction == null) {
+                if (Input.GetKey(KeyCode.A) && currentLevel.HasReaction(reactions["beer"]) && reactions["beer"].IsCool()) {
+                    nextTurnReaction = reactions["beer"];
+                }
+            }
 
 			// Fin del nivel
 			if (elapsedTime >= GAME_DURATION) {
@@ -144,7 +145,7 @@ public class GameManager : MonoBehaviour {
 			}
 
 			// Cada turno
-			if (turnTime <= 0) {
+			if (turnTime <= 0) { 
 				// Reinicia tiempo para siguiente turno
 				turnTime += currentLevel.turnDelay;
 
@@ -154,23 +155,42 @@ public class GameManager : MonoBehaviour {
 				AddLuck (currentLevel.deltaLuck);
 				ChangeProgress (currentLevel.deltaProgress);
 
-				if (nextTurnReaction != null) {
+                // Si no es periodo de evento y se utilizo una reacción aplicar efecto
+				if (nextTurnReaction != null && ! eventComing) {
 					nextTurnReaction.Apply (this);
 					nextTurnReaction = null;
 				}
 
 				// Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
 				if (progress >= 100) {
-					events["teamGoal"].Apply (this, reactions["beer"]); // La acción de teamGoalEvent modifica el valor de progress y Score.
-					Debug.Log("Tiro a gol equipo nuestro");
+                    Debug.Log("Tiro a gol equipo nuestro");
+                    events["teamGoal"].Apply (this, reactions["beer"]); // La acción de teamGoalEvent modifica el valor de progress y Score.
 				}
 				else if (progress <= 0) {
-					events["enemyGoal"].Apply (this, reactions["beer"]); // La acción de enemyGoalEvent modifica el valor de progress y Score.
-					Debug.Log("Tiro a gol equipo enemigo");
+                    Debug.Log("Tiro a gol equipo enemigo");
+                    events["enemyGoal"].Apply (this, reactions["beer"]); // La acción de enemyGoalEvent modifica el valor de progress y Score.
 				}
 
-				Debug.Log ("Paso un turno, La suerte es: " + luck.ToString() + " El avance es: " + progress.ToString() + " La pipi: " + pee.ToString());
-			}
+                // Aplicar eventos en función del tiempo
+                if (levelEvents.ContainsKey((int)elapsedTime))
+                {
+                    Debug.Log("Ocurrio un evento en " + elapsedTime);
+                    levelEvents[(int)elapsedTime].Apply(this, nextTurnReaction);
+                    levelEvents.Remove((int)elapsedTime);
+                    nextTurnReaction = null;
+                    eventComing = false;
+                }
+
+                // Checa si ocurrira un evento pronto 
+                if (levelEvents.ContainsKey((int)elapsedTime + eventPeriod))
+                {
+                    eventComing = true;
+                }
+
+                Debug.Log ("Suerte: " + luck.ToString() + " Avance: " + progress.ToString() + " pipi: " + pee.ToString());
+                if (eventComing)
+                    Debug.Log("Evento se acerca.");
+            }
 
 		}
 	}
@@ -189,17 +209,19 @@ public class GameManager : MonoBehaviour {
 		// Cargar eventos
 		int eventsTime = 0;
         levelEvents.Clear();
-        while (eventsTime < GAME_DURATION) {
-			eventsTime += currentLevel.eventDelay + Random.Range (0, currentLevel.eventDelay/2);
-            Debug.Log("time: " + eventsTime);
-            GameEvent nextEvent = currentLevel.GetEvent();
-            if (nextEvent != null)
-                levelEvents.Add (eventsTime, nextEvent);
-		}
-        Debug.Log("");
+        while (eventsTime < GAME_DURATION)
+        {
+            eventsTime += currentLevel.eventDelay + Random.Range(0, currentLevel.eventDelay / 2);
+            GameEvent newEvent = currentLevel.GetEvent();
+            if (newEvent != null)
+                levelEvents.Add(eventsTime, newEvent);
+        }
 
         // Resetear cooldowns
-
+        foreach (KeyValuePair<string, Reaction> kvp in reactions)
+        {
+            kvp.Value.Cool();
+        }
     }
 
 	void AddLuck(float amount){
@@ -220,7 +242,7 @@ public class GameManager : MonoBehaviour {
 
 	void ChangeProgress(int amount){
 		int randomNumber = Random.Range (0, 101);
-		Debug.Log (randomNumber);
+		//Debug.Log (randomNumber);
 		if (randomNumber <= luck) {
 			AddProgress (currentLevel.deltaProgress);
 		} 
@@ -246,5 +268,4 @@ public class GameManager : MonoBehaviour {
     {
         return elapsedTime;
     }
-
 }
