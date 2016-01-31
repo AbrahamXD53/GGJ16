@@ -540,4 +540,28 @@ public class GameManager : MonoBehaviour {
     {
         return isGameOver;
     }
+
+    //Metodo de prueba
+    public void nextReaction(Reaction reaction, int button)
+    {
+        if (nextTurnReaction == null)
+        {
+            if (reactions[BEER].IsCool())
+            {
+                nextTurnReaction = reactions[BEER];
+            }
+            else if (Input.GetKey(KeyCode.S) && reactions[SHOUT].IsCool())
+            {
+                nextTurnReaction = reactions[SHOUT];
+            }
+            else if (Input.GetKey(KeyCode.D) && reactions[FLAG].IsCool())
+            {
+                nextTurnReaction = reactions[FLAG];
+            }
+            else if (Input.GetKey(KeyCode.F) && reactions[CELEBRATE].IsCool())
+            {
+                nextTurnReaction = reactions[CELEBRATE];
+            }
+        }
+    }
 }

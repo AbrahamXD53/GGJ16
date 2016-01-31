@@ -5,7 +5,7 @@ using System.Collections;
 public class AbilitieManager : MonoBehaviour {
 
     public GameObject[] abilities;
-
+    public int amountBeer;
 	// Use this for initialization
 	void Start () {
 	
@@ -18,14 +18,36 @@ public class AbilitieManager : MonoBehaviour {
 
     public void ColdDown(int ability)
     {
-        Debug.Log("Boton Presonado");
-        Image myImageButton = abilities[ability].GetComponent<Image>();
-        Color temp = myImageButton.color;
-        temp.a = 0.5f;
-        myImageButton.color = temp;
+        //BUscamos si esta enfriado el boton
+        bool isCool = abilities[ability].GetComponent<AbilitieButton>().isCool();
+        if (isCool)
+        {
+            Debug.Log("Habilidad Activada");
+            //Cambia estado a enfriamiento
+            abilities[ability].GetComponent<AbilitieButton>().setCool();
+            //Cambiamos el color a uno obsucro
+            Image myImageButton = abilities[ability].GetComponent<Image>();
+            Color temp = myImageButton.color;
+            temp.a = 0.5f;
+            myImageButton.color = temp;
+            //Cambia a estado de enfriamiento
+            abilities[ability].GetComponent<Animator>().SetBool("isActivated", false);
+            GameObject childMask = abilities[ability].transform.GetChild(1).gameObject;
+            childMask.SetActive(true);
 
-        abilities[ability].GetComponent<Animator>().SetBool("isActivated", false);
-        GameObject childMask = abilities[ability].transform.GetChild(1).gameObject;
-        childMask.SetActive(true);
+            //TODO verificar
+            switch (ability)
+            {
+                //Cerveza
+                case 0:
+                    addPee(amountBeer);
+                    break;
+            }
+        }
+    }
+
+    void addPee(int amount)
+    {
+
     }
 }

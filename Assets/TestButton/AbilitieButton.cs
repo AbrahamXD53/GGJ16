@@ -7,6 +7,7 @@ public class AbilitieButton : MonoBehaviour {
 
     public float secondsForFade;
 
+    private bool cool;
     private float seconds;
     private Image myImageButton;
     private Animator myAnimator;
@@ -31,19 +32,25 @@ public class AbilitieButton : MonoBehaviour {
 
     public void ActiveAbilitie()
     {
+        //Enfriaminto en positivo
+        cool = true;
+        //Cambia el color a uno fuerte
         Color temp = myImageButton.color;
         temp.a = 1f;
         myImageButton.color = temp;
-
+        //Cambia animacion a estado Activo
         myAnimator.SetBool("isActivated", true);
+        //Busca el hijo Mask y lo deshabilita
         GameObject childMask = transform.GetChild(1).gameObject;
         childMask.SetActive(false);
     }
 
-    public void Onclick()
+    public bool isCool()
     {
-        myAnimator.SetBool("isActivated", false);
-        GameObject childMask = transform.GetChild(1).gameObject;
-        childMask.SetActive(true);
+        return cool;
+    }
+    public void setCool()
+    {
+        cool = false;
     }
 }
