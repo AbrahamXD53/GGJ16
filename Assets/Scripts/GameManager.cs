@@ -289,21 +289,21 @@ public class GameManager : MonoBehaviour {
             }
 
             // Utiliza reacción (Modifican para que esto se haga con click)         
-            if (Input.GetKey(KeyCode.A) && reactions[BEER].IsCool())
+            if (Input.GetKey(KeyCode.A))
             {
-                nextTurnReaction = reactions[BEER];
+                SetActiveReaction(GameManager.BEER);
             }
-            else if (Input.GetKey(KeyCode.S) && reactions[SHOUT].IsCool())
+            else if (Input.GetKey(KeyCode.S))
             {
-                nextTurnReaction = reactions[SHOUT];
+                SetActiveReaction(GameManager.SHOUT);
             }
-            else if (Input.GetKey(KeyCode.D) && reactions[FLAG].IsCool())
+            else if (Input.GetKey(KeyCode.D))
             {
-                nextTurnReaction = reactions[FLAG];
+                SetActiveReaction(GameManager.FLAG);
             }
-            else if (Input.GetKey(KeyCode.F) && reactions[CELEBRATE].IsCool())
+            else if (Input.GetKey(KeyCode.F))
             {
-                nextTurnReaction = reactions[CELEBRATE];
+                SetActiveReaction(GameManager.CELEBRATE);
             }
 
             // Fin del nivel
@@ -472,7 +472,6 @@ public class GameManager : MonoBehaviour {
 			AddProgress (-currentLevel.deltaProgress);
 		}
 	}
-
 	// Gets para que usen los valores con el UI
 	public float GetLuck(){
 		return luck;
@@ -547,7 +546,7 @@ public class GameManager : MonoBehaviour {
 
     public void SetActiveReaction(string name)
     {
-        if (nextTurnReaction != null && reactions[name].IsCool())
+        if (nextTurnReaction == null && reactions[name].IsCool())
         {
             nextTurnReaction = reactions[name];
         }
