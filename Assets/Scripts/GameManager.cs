@@ -42,7 +42,7 @@ public class GameManager : MonoBehaviour {
     #endregion
 
     // Duración del juego (Nivel) en segundos
-    const float GAME_DURATION = 20.0f;
+    const float GAME_DURATION = 45.0f;
 
     const float LUCK_MULTIPLIER = 2;
 
@@ -71,9 +71,9 @@ public class GameManager : MonoBehaviour {
                 k =>
                 {
                     k.AddPee(DELTA_PEE);
-                    k.AddLuck(LUCK_MULTIPLIER * k.currentLevel.deltaLuck);
+                    k.AddLuck(LUCK_MULTIPLIER * -k.currentLevel.deltaLuck);
                     // Debug
-                    reactionOutput = "Cerveza, pipi +" + DELTA_PEE + " suerte +" + k.currentLevel.deltaLuck;
+                    reactionOutput = "Cerveza, pipi +" + DELTA_PEE + " suerte +" + -k.currentLevel.deltaLuck;
                 }
             )
         },
@@ -81,17 +81,17 @@ public class GameManager : MonoBehaviour {
             new Reaction(FLAG, 5,
                 k =>
                 {
-                    k.AddLuck(k.currentLevel.deltaLuck);
-                   reactionOutput = "Bandera, suerte +" + k.currentLevel.deltaLuck;
+                    k.AddLuck(-k.currentLevel.deltaLuck);
+                   reactionOutput = "Bandera, suerte +" + -k.currentLevel.deltaLuck;
                 }
             )
         },
         {SHOUT,
-            new Reaction(FLAG, 7,
+            new Reaction(SHOUT, 7,
                 k =>
                 {
-                    k.AddLuck(k.currentLevel.deltaLuck);
-                     reactionOutput = "Grito, suerte +" + k.currentLevel.deltaLuck;
+                    k.AddLuck(-k.currentLevel.deltaLuck);
+                     reactionOutput = "Grito, suerte +" + -k.currentLevel.deltaLuck;
                 }
             )
         },
@@ -99,8 +99,8 @@ public class GameManager : MonoBehaviour {
             new Reaction(CELEBRATE, 10,
                 k =>
                 {
-                    k.AddLuck(LUCK_MULTIPLIER * k.currentLevel.deltaLuck);
-                     reactionOutput = "Celebración, suerte +" + LUCK_MULTIPLIER * k.currentLevel.deltaLuck;
+                    k.AddLuck(LUCK_MULTIPLIER * -k.currentLevel.deltaLuck);
+                     reactionOutput = "Celebración, suerte +" + LUCK_MULTIPLIER * -k.currentLevel.deltaLuck;
                 }
             )
         }
@@ -189,7 +189,7 @@ public class GameManager : MonoBehaviour {
                     {reactions[FLAG], 40},
                     {reactions[CELEBRATE], 70}
                 },
-                k => { k.progress = 100; Debug.Log("Penal Exitoso"); },
+                k => { k.progress = 100; eventOutput = "Penal Exitoso"; },
                 k => { eventOutput = "Penal Fallado"; }
             )
         },
@@ -215,24 +215,32 @@ public class GameManager : MonoBehaviour {
 
     #region Levels
     static List<Level> levels = new List<Level>(){
-        new Level(2, 7, -1 ,10, new Dictionary<GameEvent, int> {
+        new Level(2, 10, -2 ,10, new Dictionary<GameEvent, int> {
             { events[PRO_PASS],70},
             { events[PRO_SWEEP],60},
             { events[PRO_PENALTY],50}
         }),
-        new Level(2, 7, -2 ,9, new Dictionary<GameEvent, int> {
+        new Level(2, 9, -3 ,10, new Dictionary<GameEvent, int> {
             { events[PRO_PASS],60},
             { events[CONTRA_PASS],50},
             { events[PRO_PENALTY],70}
         }),
-        new Level(1, 6, -2, 8, new Dictionary<GameEvent, int> {
+        new Level(1, 9, -4, 8, new Dictionary<GameEvent, int> {
             { events[PRO_PASS],50},
             { events[CONTRA_PASS],50},
             { events[PRO_SWEEP],50},
             { events[CONTRA_SWEEP],50},
             { events[PRO_PENALTY],40}
         }),
-	};
+        new Level(1, 8, -5, 6, new Dictionary<GameEvent, int> {
+            { events[PRO_PASS],50},
+            { events[CONTRA_PASS],60},
+            { events[PRO_SWEEP],50},
+            { events[CONTRA_SWEEP],60},
+            { events[PRO_PENALTY],40},
+            { events[CONTRA_PENALTY],70}
+        }),
+    };
     #endregion
     int levelNumber = 0;
 
@@ -263,6 +271,7 @@ public class GameManager : MonoBehaviour {
 		if (inGame && ! isGameOver) {
 			turnTime -= Time.deltaTime;
 			elapsedTime += Time.deltaTime;
+
             if (isPeeing)
             {
                 peeTime -= Time.deltaTime;
@@ -273,6 +282,7 @@ public class GameManager : MonoBehaviour {
                     pee = 0;
                 }
             }
+
             // Utiliza reacción (Modifican para que esto se haga con click)
             if (nextTurnReaction == null) {
                 if (Input.GetKey(KeyCode.A) && reactions[BEER].IsCool()) {
@@ -308,6 +318,7 @@ public class GameManager : MonoBehaviour {
                     }
 
 					LoadLevel (levelNumber);
+                    return;
 				} 
 				else {
                     inGame = false;
@@ -378,10 +389,13 @@ public class GameManager : MonoBehaviour {
 		// reiniciar el tiempo de juego 
 		elapsedTime = 0;
 
-		// reiniciar variables
+		// Inicializar variables
 		teamGoals = enemyGoals = pee = 0;
 		luck = INITIAL_LUCK;
 		progress = INITIAL_PROGRESS;
+        turnTime = currentLevel.turnDelay;
+        nextTurnReaction = null;
+        eventComing = false;
 
 		// Cargar eventos
 		int eventsTime = 0;
