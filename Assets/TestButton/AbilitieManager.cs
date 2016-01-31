@@ -2,19 +2,23 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class AbilitieManager : MonoBehaviour {
+public class AbilitieManager : MonoBehaviour
+{
 
     public GameObject[] abilities;
+    public string[] names;
     public int amountBeer;
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    // Use this for initialization
+    void Start()
+    {
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
 
     public void ColdDown(int ability)
     {
@@ -43,7 +47,9 @@ public class AbilitieManager : MonoBehaviour {
                     addPee(amountBeer);
                     break;
             }
+            GamePlaying.game.player.SetTrigger(names[ability]);
         }
+
     }
 
     void addPee(int amount)

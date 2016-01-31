@@ -11,11 +11,14 @@ public class GamePlaying : MonoBehaviour
     public Image nextEvent;
     public Image modifier;
     public Text score;
+    public Animator player;
+    public static GamePlaying game; 
 
     public Sprite[] eventImageArray;
     void Start()
     {
         gameManager = GameManager.instance;
+        game = this;
     }
     string GetTimeString(int secs)
     {
