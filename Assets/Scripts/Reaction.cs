@@ -10,6 +10,7 @@ public class Reaction {
     int coolDown;
     int counter;
     Action<GameManager> action;
+    string name;
 
     public static void Update()
     {
@@ -21,6 +22,17 @@ public class Reaction {
         reactions.Add(this);
         this.action = action;
         this.coolDown = CoolDown;
+        counter = 0;
+        name = "";
+    }
+
+    public Reaction(string name, int CoolDown, Action<GameManager> action)
+    {
+        reactions.Add(this);
+        this.action = action;
+        this.coolDown = CoolDown;
+        counter = 0;
+        this.name = name;
     }
 
     public void addSecond()
@@ -52,4 +64,10 @@ public class Reaction {
     {
         counter = 0;
     }
+
+    public string GetName()
+    {
+        return name;
+    }
+
 }
