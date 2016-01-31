@@ -34,6 +34,7 @@ public class Warning : MonoBehaviour
             if (epCount > 1)
             {
                 iTween.ShakePosition(txtWarning.transform.parent.GetChild(1).gameObject, new Vector3(Random.Range(0, 20), Random.Range(0, 20), 0), duration * 10);
+                iTween.ShakePosition(txtWarning.gameObject, new Vector3(Random.Range(0, 20), Random.Range(0, 20), 0), duration * 10);
                 StartCoroutine(Epilepsia());
             }
             else
@@ -54,7 +55,7 @@ public class Warning : MonoBehaviour
             yield return new WaitForSeconds(interval);
         }
         m_camera.backgroundColor = new Color(1, 1, 1);
-        txtWarning.text = "Ah!... También puede causar epilepsia a personas fotosensibles no me pregunten no soy 100tifiko";
+        txtWarning.text = "Ah!... También puede causar <color='blue'>ataques epilepticos a personas fotosensibles </color>no me pregunten no soy 100tifiko";
         StartCoroutine(coldDown());
         yield return 0;
     }
