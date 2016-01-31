@@ -54,7 +54,7 @@ public class GamePlaying : MonoBehaviour
         nextEvent.enabled = gameManager.IsEventComing();
         if (nextEvent.enabled)
             nextEvent.sprite = GetEventSprite(gameManager.NextEvent());
-
-        SoundManager.Instance.ChangeSong(gameManager.GetProgress());
+        if(SoundManager.Instance!=null)
+            SoundManager.Instance.ChangeSong(gameManager.GetProgress());
     }
 }
