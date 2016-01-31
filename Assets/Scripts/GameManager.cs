@@ -339,6 +339,7 @@ public class GameManager : MonoBehaviour {
                 // Reinicia tiempo para siguiente turno
                 turnTime += currentLevel.turnDelay;
 
+                
                 Reaction.Update();
 
                 // Modificar los valores de la suerte y del progreso de acuerdo al nivel
@@ -542,7 +543,7 @@ public class GameManager : MonoBehaviour {
         {
             return nextTurnReaction.GetName();
         }
-        return "";
+        return null;
     }
 
     public void SetActiveReaction(string name)
@@ -556,5 +557,15 @@ public class GameManager : MonoBehaviour {
     public bool GameOver()
     {
         return isGameOver;
+    }
+
+    public bool HasEventAt(int second)
+    {
+        return levelEvents.ContainsKey(second);
+    }
+
+    public Dictionary<int, GameEvent> GetLevelEvents()
+    {
+        return levelEvents;
     }
 }
