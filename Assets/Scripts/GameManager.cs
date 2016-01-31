@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -8,12 +9,42 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour {
 
-	public const int INITIAL_LUCK = 50;
-	public const int INITIAL_PROGRESS = 50;
-	public const int FAIL_PROGRESS = 30;
-	public const int DELTA_PEE = 20;
+    #region Debugging
+    public static string eventOutput = "";
+    public static string reactionOutput = "";
+    #endregion
+
+    public const int INITIAL_LUCK = 50;
+    public const int INITIAL_PROGRESS = 50;
+    public const int FAIL_PROGRESS = 30;
+    public const int DELTA_PEE = 20;
+    public const int PEE_TIME = 5;
+
+    public const string PRO_PLAYER = "pro";
+    public const string CONTRA_PLAYER = "contra";
+
+    #region Nombres de eventos
+    public const string PRO_GOAL = "ProGoal";
+    public const string CONTRA_GOAL = "ContraGoal";
+    public const string PRO_PASS = "ProPass";
+    public const string CONTRA_PASS = "ContraPass";
+    public const string PRO_SWEEP = "ProSweep";
+    public const string CONTRA_SWEEP = "ContraSweep";
+    public const string PRO_PENALTY = "ProPenalty";
+    public const string CONTRA_PENALTY = "ContraPenalty";
+    #endregion
+
+    #region Nombres de Reacciones
+    public const string BEER = "beer";
+    public const string SHOUT = "shout";
+    public const string FLAG = "flag"; 
+    public const string CELEBRATE = "celebrate";
+    #endregion
+
     // Duración del juego (Nivel) en segundos
-    const float GAME_DURATION = 60.0f;
+    const float GAME_DURATION = 45.0f;
+
+    const float LUCK_MULTIPLIER = 2;
 
     float luck;
 	int pee;
@@ -25,77 +56,201 @@ public class GameManager : MonoBehaviour {
     float elapsedTime;
 	float turnTime;
 
+    float peeTime = PEE_TIME;
+    bool isPeeing = false;
+
 	bool isGameOver = false;
-
-	public int levelNumber = 0;
-
-	// Esta instancia tiene referencias a las reacciones y eventos disponibles en cada nivel,
-	// así como la variación de luck, pee y progress y el retardo de turno.
-	Level currentLevel;
+    bool inGame = false;
 
 	Reaction nextTurnReaction = null;
 
     #region Reactions
-    static Dictionary<string, Reaction> reactions = new Dictionary<string, Reaction>{
-		{"beer",
-        new Reaction(5,
-            k =>
-            {
-                k.pee += DELTA_PEE;
-                k.luck += 2 * k.currentLevel.deltaLuck;
-                Debug.Log("Tomaste cerveza, pipi +" + DELTA_PEE + " y suerte +" + 2 * k.currentLevel.deltaLuck);
-            }
-        )
-        }
-	};
-    #endregion
-
-    #region GameEvents
-    static Dictionary<string, GameEvent> events = new Dictionary<string, GameEvent>{
-		{"teamGoal",
-            new GameEvent(
-                new Dictionary<Reaction, int>{
-                    {reactions["beer"], 50},
-                },
-                k => { k.teamGoals++; k.progress = INITIAL_PROGRESS; Debug.Log("Gol Anotado"); },
-                k => { k.progress -= FAIL_PROGRESS; Debug.Log("Gol Fallado"); }
+    public static Dictionary<string, Reaction> reactions = new Dictionary<string, Reaction>{
+        {BEER,
+            new Reaction(BEER, 2,
+                k =>
+                {
+                    k.AddPee(DELTA_PEE);
+                    k.AddLuck(LUCK_MULTIPLIER * -k.currentLevel.deltaLuck);
+                    // Debug
+                    reactionOutput = "Cerveza, pipi +" + DELTA_PEE + " suerte +" + -k.currentLevel.deltaLuck;
+                }
             )
         },
-        {"enemyGoal",
-            new GameEvent(
-                new Dictionary<Reaction, int>{
-                    {reactions["beer"], 50},
-                },
-                k => { k.progress -= FAIL_PROGRESS; Debug.Log("Gol enemigo Fallado"); },
-                k => { k.enemyGoals++; k.progress = INITIAL_PROGRESS ; Debug.Log("Gol enemigo Anotado"); }
+        {FLAG,
+            new Reaction(FLAG, 5,
+                k =>
+                {
+                    k.AddLuck(-k.currentLevel.deltaLuck);
+                   reactionOutput = "Bandera, suerte +" + -k.currentLevel.deltaLuck;
+                }
             )
         },
-        {"pass",
-            new GameEvent(
-                new Dictionary<Reaction, int>{
-                    {reactions["beer"], 50},
-                },
-                k => {k.AddProgress(k.currentLevel.deltaProgress); Debug.Log("Pase Exitoso"); },
-                k => {k.AddProgress(-k.currentLevel.deltaProgress); Debug.Log("Pase Fallado"); }
+        {SHOUT,
+            new Reaction(SHOUT, 7,
+                k =>
+                {
+                    k.AddLuck(-k.currentLevel.deltaLuck);
+                     reactionOutput = "Grito, suerte +" + -k.currentLevel.deltaLuck;
+                }
+            )
+        },
+        {CELEBRATE,
+            new Reaction(CELEBRATE, 10,
+                k =>
+                {
+                    k.AddLuck(LUCK_MULTIPLIER * -k.currentLevel.deltaLuck);
+                     reactionOutput = "Celebración, suerte +" + LUCK_MULTIPLIER * -k.currentLevel.deltaLuck;
+                }
             )
         }
     };
     #endregion
+
+    #region GameEvents
+    public static Dictionary<string, GameEvent> events = new Dictionary<string, GameEvent>{
+		{PRO_GOAL,
+            new GameEvent(PRO_GOAL,
+                new Dictionary<Reaction, int>{
+                    {reactions[BEER], 50},
+                    {reactions[SHOUT], 70},
+                    {reactions[FLAG], 50},
+                    {reactions[CELEBRATE], 80}
+                },
+                k => { k.teamGoals++; k.progress = INITIAL_PROGRESS;  eventOutput = "Gol Anotado"; },
+                k => { k.progress = 70; eventOutput = "Gol Fallado"; }
+            )
+        },
+        {CONTRA_GOAL,
+            new GameEvent(CONTRA_GOAL,
+                new Dictionary<Reaction, int>{
+                    {reactions[BEER], 50},
+                    {reactions[SHOUT], 30},
+                    {reactions[FLAG], 50},
+                    {reactions[CELEBRATE], 10}
+                },
+                k => { k.enemyGoals++;  k.progress = INITIAL_PROGRESS; eventOutput = "Gol enemigo Anotado"; },
+                k => { k.progress = 0; eventOutput = "Gol enemigo Fallado"; }
+            )
+        },
+        {PRO_PASS,
+            new GameEvent(PRO_PASS,
+                new Dictionary<Reaction, int>{
+                    {reactions[BEER], 20},
+                    {reactions[SHOUT], 80},
+                    {reactions[FLAG], 50},
+                    {reactions[CELEBRATE], 20}
+                },
+                k => { k.AddProgress(2 * k.currentLevel.deltaProgress);eventOutput = "Pase Exitoso"; },
+                k => { k.AddProgress(- k.currentLevel.deltaProgress);eventOutput = "Pase Fallado"; }
+            )
+        },
+        {CONTRA_PASS,
+            new GameEvent(CONTRA_PASS,
+                new Dictionary<Reaction, int>{
+                    {reactions[BEER], 20},
+                    {reactions[SHOUT], 40},
+                    {reactions[FLAG], 60},
+                    {reactions[CELEBRATE], 80}
+                },
+                k => { k.AddProgress(-2 * k.currentLevel.deltaProgress); eventOutput = "Pase enemigo Exitoso"; },
+                k => { k.AddProgress(+ k.currentLevel.deltaProgress);eventOutput = "Pase enemigo Fallado"; }
+            )
+        },
+        {PRO_SWEEP,
+            new GameEvent(PRO_SWEEP,
+                new Dictionary<Reaction, int>{
+                    {reactions[BEER], 30},
+                    {reactions[SHOUT], 60},
+                    {reactions[FLAG], 60},
+                    {reactions[CELEBRATE], 80}
+                },
+                k => { k.AddProgress(k.currentLevel.deltaProgress);eventOutput = "Barrida Exitosa"; },
+                k => { k.AddProgress(-k.currentLevel.deltaProgress); eventOutput = "Barrida Fallada"; }
+            )
+        },
+        {CONTRA_SWEEP,
+            new GameEvent(CONTRA_SWEEP,
+                new Dictionary<Reaction, int>{
+                    {reactions[BEER], 30},
+                    {reactions[SHOUT], 40},
+                    {reactions[FLAG], 70},
+                    {reactions[CELEBRATE], 70}
+                },
+                k => { k.AddProgress(-k.currentLevel.deltaProgress); eventOutput = "Barrida enemigo Exitosa"; },
+                k => { k.AddProgress(k.currentLevel.deltaProgress); eventOutput = "Barrida enemigo Fallada"; }
+            )
+        },
+        {PRO_PENALTY,
+            new GameEvent(PRO_PENALTY,
+                new Dictionary<Reaction, int>{
+                    {reactions[BEER], 50},
+                    {reactions[SHOUT],20},
+                    {reactions[FLAG], 40},
+                    {reactions[CELEBRATE], 70}
+                },
+                k => { k.progress = 100; eventOutput = "Penal Exitoso"; },
+                k => { eventOutput = "Penal Fallado"; }
+            )
+        },
+        {CONTRA_PENALTY,
+            new GameEvent(CONTRA_PENALTY,
+                new Dictionary<Reaction, int>{
+                    {reactions[BEER], 50},
+                    {reactions[SHOUT], 50},
+                    {reactions[FLAG], 30},
+                    {reactions[CELEBRATE], 70}
+                },
+                k => { k.progress = 0; eventOutput = "Penal enemigo Exitoso"; },
+                k => { eventOutput = "Penal enemigo Fallado"; }
+            )
+        }
+
+    };
+
+    #endregion
 	Dictionary<int, GameEvent> levelEvents = new Dictionary<int, GameEvent> ();
+    bool eventComing = false;
+    int eventPeriod = 2;
 
     #region Levels
     static List<Level> levels = new List<Level>(){
-        new Level(1, 5, -1 ,10, new List<Reaction> { reactions["beer"] }, new Dictionary<GameEvent, int> {{events["pass"],80}}),
-        new Level(1, 5, -1 ,10, null, null),
-        new Level(1, 5, -1 ,10, null, null),
-		/*new Level(1, 5, 1 ,10, new List<Reaction>{reactions["beer"], reactions["flag"]},
-			new Dictionary<GameEvent, int>{{events["pass"], 80}, {events["sweep"], 70}})*/
-	};
+        new Level(2, 10, -2 ,10, new Dictionary<GameEvent, int> {
+            { events[PRO_PASS],70},
+            { events[PRO_SWEEP],60},
+            { events[PRO_PENALTY],50}
+        }),
+        new Level(2, 9, -3 ,10, new Dictionary<GameEvent, int> {
+            { events[PRO_PASS],60},
+            { events[CONTRA_PASS],50},
+            { events[PRO_PENALTY],70}
+        }),
+        new Level(1, 9, -4, 8, new Dictionary<GameEvent, int> {
+            { events[PRO_PASS],50},
+            { events[CONTRA_PASS],50},
+            { events[PRO_SWEEP],50},
+            { events[CONTRA_SWEEP],50},
+            { events[PRO_PENALTY],40}
+        }),
+        new Level(1, 8, -5, 6, new Dictionary<GameEvent, int> {
+            { events[PRO_PASS],50},
+            { events[CONTRA_PASS],60},
+            { events[PRO_SWEEP],50},
+            { events[CONTRA_SWEEP],60},
+            { events[PRO_PENALTY],40},
+            { events[CONTRA_PENALTY],70}
+        }),
+    };
     #endregion
+    int levelNumber = 0;
 
-    public static GameManager instance = null;         
+    // Esta instancia tiene referencias a las reacciones y eventos disponibles en cada nivel,
+    // así como la variación de luck, pee y progress y el retardo de turno.
+    Level currentLevel;
 
-	void Awake()
+    public static GameManager instance = null;
+
+    void Awake ()
 	{
 		// Verifica si existe instance
 		if (instance == null)
@@ -113,17 +268,39 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Update () {
-		if (!isGameOver) {
+		if (inGame && ! isGameOver) {
 			turnTime -= Time.deltaTime;
 			elapsedTime += Time.deltaTime;
 
-			if (reactions["beer"].IsCool ())
-				Debug.Log ("Cerveza recargada");
+            if (isPeeing)
+            {
+                peeTime -= Time.deltaTime;
+                if (peeTime <= 0)
+                {
+                    peeTime = PEE_TIME;
+                    isPeeing = false;
+                    pee = 0;
+                }
+            }
 
-			// Utiliza reacción
-			if (nextTurnReaction == null && Input.GetKey (KeyCode.A) && reactions["beer"].IsCool()) {
-				nextTurnReaction = reactions["beer"];
-			}
+            // Utiliza reacción (Modifican para que esto se haga con click)
+            if (nextTurnReaction == null) {
+                if (Input.GetKey(KeyCode.A) && reactions[BEER].IsCool()) {
+                    nextTurnReaction = reactions[BEER];
+                }
+                else if (Input.GetKey(KeyCode.S) && reactions[SHOUT].IsCool())
+                {
+                    nextTurnReaction = reactions[SHOUT];
+                }
+                else if (Input.GetKey(KeyCode.D) && reactions[FLAG].IsCool())
+                {
+                    nextTurnReaction = reactions[FLAG];
+                }
+                else if (Input.GetKey(KeyCode.F) && reactions[CELEBRATE].IsCool())
+                {
+                    nextTurnReaction = reactions[CELEBRATE];
+                }
+            }
 
 			// Fin del nivel
 			if (elapsedTime >= GAME_DURATION) {
@@ -131,48 +308,79 @@ public class GameManager : MonoBehaviour {
 				if (teamGoals > enemyGoals) {
 					// Nivel superado, cargar siguiente
 					levelNumber++;
-					// Ultimo nivel superado
-					if (levelNumber == levels.Count)
-						SceneManager.LoadScene("EndScene");
+                    inGame = false;
+
+                    // Ultimo nivel superado
+                    if (levelNumber == levels.Count)
+                    {
+                        isGameOver = true;
+                        SceneManager.LoadScene("EndScene");
+                    }
+
 					LoadLevel (levelNumber);
+                    return;
 				} 
 				else {
+                    inGame = false;
 					isGameOver = true;
 					SceneManager.LoadScene("GameOverScene");
 				}
-
 			}
 
 			// Cada turno
 			if (turnTime <= 0) {
-				// Reinicia tiempo para siguiente turno
-				turnTime += currentLevel.turnDelay;
+                // Reinicia tiempo para siguiente turno
+                turnTime += currentLevel.turnDelay;
 
 				Reaction.Update ();
 
 				// Modificar los valores de la suerte y del progreso de acuerdo al nivel
 				AddLuck (currentLevel.deltaLuck);
 				ChangeProgress (currentLevel.deltaProgress);
+                if (pee >= 100)
+                    isPeeing = true;
 
-				if (nextTurnReaction != null) {
+                // Si no es periodo de evento y se utilizo una reacción aplicar efecto
+				if (nextTurnReaction != null && ! isPeeing && ! eventComing) {
 					nextTurnReaction.Apply (this);
 					nextTurnReaction = null;
 				}
 
-				// Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
-				if (progress >= 100) {
-					events["teamGoal"].Apply (this, reactions["beer"]); // La acción de teamGoalEvent modifica el valor de progress y Score.
-					Debug.Log("Tiro a gol equipo nuestro");
+                // Si el progress es cercano al 100, prepararse para reaccionar a tiro de gol.
+                if (ProGoalNear() || ContraGoalNear())
+                {
+                    eventComing = true;
+                }
+                // Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
+                if (progress >= 100) {
+                    events[PRO_GOAL].Apply (this, nextTurnReaction); // La acción de teamGoalEvent modifica el valor de progress y Score.
+                    eventComing = false;
 				}
 				else if (progress <= 0) {
-					events["enemyGoal"].Apply (this, reactions["beer"]); // La acción de enemyGoalEvent modifica el valor de progress y Score.
-					Debug.Log("Tiro a gol equipo enemigo");
-				}
+                    events[CONTRA_GOAL].Apply (this, nextTurnReaction); // La acción de enemyGoalEvent modifica el valor de progress y Score.
+                    eventComing = false;
+                }
 
-				Debug.Log ("Paso un turno, La suerte es: " + luck.ToString() + " El avance es: " + progress.ToString() + " La pipi: " + pee.ToString());
-			}
+                // Aplicar eventos en función del tiempo
+                if (levelEvents.ContainsKey((int)elapsedTime))
+                {
+                    levelEvents[(int)elapsedTime].Apply(this, nextTurnReaction);
+                    levelEvents.Remove((int)elapsedTime);
+                    eventComing = false;
+                }
 
+                // Checa si ocurrira un evento pronto 
+                if (levelEvents.ContainsKey((int)elapsedTime + eventPeriod))
+                {
+                    eventComing = true;
+                }
+            }
 		}
+        else if(!isGameOver)
+        {
+            Debug.Log("Presiona para comenzar.");
+            if (Input.anyKey) inGame = true;
+        }
 	}
 
 	void LoadLevel (int levelNumber){
@@ -181,25 +389,31 @@ public class GameManager : MonoBehaviour {
 		// reiniciar el tiempo de juego 
 		elapsedTime = 0;
 
-		// reiniciar variables
+		// Inicializar variables
 		teamGoals = enemyGoals = pee = 0;
 		luck = INITIAL_LUCK;
 		progress = INITIAL_PROGRESS;
+        turnTime = currentLevel.turnDelay;
+        nextTurnReaction = null;
+        eventComing = false;
 
 		// Cargar eventos
 		int eventsTime = 0;
         levelEvents.Clear();
-        while (eventsTime < GAME_DURATION) {
-			eventsTime += currentLevel.eventDelay + Random.Range (0, currentLevel.eventDelay/2);
-            Debug.Log("time: " + eventsTime);
-            GameEvent nextEvent = currentLevel.GetEvent();
-            if (nextEvent != null)
-                levelEvents.Add (eventsTime, nextEvent);
-		}
-        Debug.Log("");
+        while (eventsTime < GAME_DURATION)
+        {
+            int Offset = Random.Range(-currentLevel.eventDelay / 2, currentLevel.eventDelay / 2);
+            eventsTime += currentLevel.eventDelay + Offset;
+            GameEvent newEvent = currentLevel.GetEvent();
+            if (newEvent != null)
+                levelEvents.Add(eventsTime, newEvent);
+        }
 
         // Resetear cooldowns
-
+        foreach (KeyValuePair<string, Reaction> kvp in reactions)
+        {
+            kvp.Value.Cool();
+        }
     }
 
 	void AddLuck(float amount){
@@ -218,9 +432,18 @@ public class GameManager : MonoBehaviour {
 			progress = 0;
 	}
 
-	void ChangeProgress(int amount){
+    void AddPee(int amount)
+    {
+        pee += amount;
+        if (pee >= 100)
+            pee = 100;
+        if (pee <= 0)
+            pee = 0;
+    }
+
+    void ChangeProgress(int amount){
 		int randomNumber = Random.Range (0, 101);
-		Debug.Log (randomNumber);
+		//Debug.Log (randomNumber);
 		if (randomNumber <= luck) {
 			AddProgress (currentLevel.deltaProgress);
 		} 
@@ -230,21 +453,77 @@ public class GameManager : MonoBehaviour {
 	}
 
 	// Gets para que usen los valores con el UI
-	float GetLuck(){
+	public float GetLuck(){
 		return luck;
 	}
 		
-	int GetPee(){
+	public int GetPee(){
 		return pee;
 	}
 
-	int GetProgress(){
+	public int GetProgress(){
 		return progress;
 	}
 
-    float GetElapsedTime()
+    public  float GetElapsedTime()
     {
         return elapsedTime;
     }
 
+    public bool IsPeing()
+    {
+        return isPeeing;
+    }
+
+    public bool EventComing()
+    {
+        return eventComing;
+    }
+
+    public string NextEvent()
+    {
+        return levelEvents.OrderBy(k => k.Key).First().Value.GetName();
+    }
+
+    public int GetScore(string team)
+    {
+        if (team == PRO_PLAYER)
+        {
+            return teamGoals;
+        }
+        else if (team == CONTRA_PLAYER)
+        {
+            return enemyGoals;
+        }
+        return -1;
+    }
+
+    public int GetLevelNumber()
+    {
+        return levelNumber;
+    }
+
+    public bool ProGoalNear()
+    {
+        return (progress >= 85 && progress <= 99);
+    }
+
+    public bool ContraGoalNear()
+    {
+        return (progress >= 1 && progress <= 15);
+    }
+
+    public string GetActiveReaction()
+    {
+        if (nextTurnReaction != null)
+        {
+            return nextTurnReaction.GetName();
+        }
+        return "";
+    }
+
+    public bool GameOver()
+    {
+        return isGameOver;
+    }
 }

@@ -12,16 +12,14 @@ public class Level{
     Dictionary<GameEvent, int> EventProbability;
     
     //List of valid reactions in this level
-    List<Reaction> reactions;
+    //List<Reaction> reactions;
 
-	public Level(int turnDelay, int eventDelay, float deltaLuck,  int deltaProgress,
-        List<Reaction> validReactions, Dictionary<GameEvent, int> EventProbability)
+	public Level(int turnDelay, int eventDelay, float deltaLuck,  int deltaProgress, Dictionary<GameEvent, int> EventProbability)
     {
 		this.turnDelay = turnDelay;
 		this.eventDelay = eventDelay;
 		this.deltaLuck = deltaLuck;
-		this.deltaProgress = deltaProgress;
-        this.reactions = validReactions;
+        this.deltaProgress = deltaProgress;
         this.EventProbability = EventProbability;
 	}
    
