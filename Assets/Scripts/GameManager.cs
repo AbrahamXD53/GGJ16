@@ -453,7 +453,8 @@ public class GameManager : MonoBehaviour {
 
     void AddPee(int amount)
     {
-        pee += amount;
+        Debug.Log("Agregada pipi: " + amount);
+            pee += amount;
         if (pee >= 100)
             pee = 100;
         if (pee <= 0)

@@ -15,23 +15,18 @@ public class Pee : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         peeBar = GetComponent<Slider>();
-        gameManager = GameObject.FindObjectOfType<GameManager>().GetComponent<GameManager>();
+        gameManager = GameManager.instance;
         
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        //nivelPipi = gameManager.GetPee();
-        //peeBar.value = nivelPipi;
+        nivelPipi = gameManager.GetPee();
+        
+        peeBar.value = nivelPipi;
         if (nivelPipi >= 100)
             emptyPee();
 	}
-
-    //Agrega el valor de la cerveza ingeridas
-    public void setAmountPee(int amount)
-    {
-      // gameManager.a
-    }
     //Cuando se vaya al baño
     public void emptyPee()
     {

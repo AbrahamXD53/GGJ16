@@ -70,4 +70,7 @@ public class Reaction {
         return name;
     }
 
+    public int GetTimeToCool(){
+        return counter;
+    }
 }
