@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour {
     #region Debugging
     public static string eventOutput = "";
     public static string reactionOutput = "";
+    public int randomNumber = 0;
     #endregion
 
     public const int INITIAL_LUCK = 50;
@@ -64,6 +65,7 @@ public class GameManager : MonoBehaviour {
 
 	Reaction nextTurnReaction = null;
 
+    bool goalComing = false; 
     #region Reactions
     public static Dictionary<string, Reaction> reactions = new Dictionary<string, Reaction>{
         {BEER,
@@ -125,12 +127,12 @@ public class GameManager : MonoBehaviour {
             new GameEvent(CONTRA_GOAL,
                 new Dictionary<Reaction, int>{
                     {reactions[BEER], 50},
-                    {reactions[SHOUT], 30},
+                    {reactions[SHOUT], 90},
                     {reactions[FLAG], 50},
                     {reactions[CELEBRATE], 10}
                 },
-                k => { k.enemyGoals++;  k.progress = INITIAL_PROGRESS; eventOutput = "Gol enemigo Anotado"; },
-                k => { k.progress = 0; eventOutput = "Gol enemigo Fallado"; }
+                k => { k.progress = 0; eventOutput = "Gol enemigo Fallado"; },
+                k => { k.enemyGoals++;  k.progress = INITIAL_PROGRESS; eventOutput = "Gol enemigo Anotado";}
             )
         },
         {PRO_PASS,
@@ -153,8 +155,8 @@ public class GameManager : MonoBehaviour {
                     {reactions[FLAG], 60},
                     {reactions[CELEBRATE], 80}
                 },
-                k => { k.AddProgress(-2 * k.currentLevel.deltaProgress); eventOutput = "Pase enemigo Exitoso"; },
-                k => { k.AddProgress(+ k.currentLevel.deltaProgress);eventOutput = "Pase enemigo Fallado"; }
+                k => { k.AddProgress(+ k.currentLevel.deltaProgress);eventOutput = "Pase enemigo Fallado"; },
+                k => { k.AddProgress(-2 * k.currentLevel.deltaProgress); eventOutput = "Pase enemigo Exitoso"; }
             )
         },
         {PRO_SWEEP,
@@ -177,8 +179,8 @@ public class GameManager : MonoBehaviour {
                     {reactions[FLAG], 70},
                     {reactions[CELEBRATE], 70}
                 },
-                k => { k.AddProgress(-k.currentLevel.deltaProgress); eventOutput = "Barrida enemigo Exitosa"; },
-                k => { k.AddProgress(k.currentLevel.deltaProgress); eventOutput = "Barrida enemigo Fallada"; }
+                k => { k.AddProgress(k.currentLevel.deltaProgress); eventOutput = "Barrida enemigo Fallada"; },
+                k => { k.AddProgress(-k.currentLevel.deltaProgress); eventOutput = "Barrida enemigo Exitosa"; }
             )
         },
         {PRO_PENALTY,
@@ -201,8 +203,8 @@ public class GameManager : MonoBehaviour {
                     {reactions[FLAG], 30},
                     {reactions[CELEBRATE], 70}
                 },
-                k => { k.progress = 0; eventOutput = "Penal enemigo Exitoso"; },
-                k => { eventOutput = "Penal enemigo Fallado"; }
+                k => { eventOutput = "Penal enemigo Fallado"; },
+                k => { k.progress = 0; eventOutput = "Penal enemigo Exitoso"; }    
             )
         }
 
@@ -341,7 +343,7 @@ public class GameManager : MonoBehaviour {
                     isPeeing = true;
 
                 // Si no es periodo de evento y se utilizo una reacción aplicar efecto
-				if (nextTurnReaction != null && ! isPeeing && ! eventComing) {
+				if (nextTurnReaction != null && ! isPeeing && ! eventComing && !goalComing) {
 					nextTurnReaction.Apply (this);
 					nextTurnReaction = null;
 				}
@@ -349,24 +351,31 @@ public class GameManager : MonoBehaviour {
                 // Si el progress es cercano al 100, prepararse para reaccionar a tiro de gol.
                 if (ProGoalNear() || ContraGoalNear())
                 {
-                    eventComing = true;
+                    goalComing = true;
                 }
-                // Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
-                if (progress >= 100) {
-                    events[PRO_GOAL].Apply (this, nextTurnReaction); // La acción de teamGoalEvent modifica el valor de progress y Score.
-                    eventComing = false;
-				}
-				else if (progress <= 0) {
-                    events[CONTRA_GOAL].Apply (this, nextTurnReaction); // La acción de enemyGoalEvent modifica el valor de progress y Score.
-                    eventComing = false;
+
+                // Si estuviste cerca de Gol pero ya no 
+                if (!ProGoalNear() && !ContraGoalNear() && goalComing) { 
+                    goalComing = false;
                 }
 
                 // Aplicar eventos en función del tiempo
                 if (levelEvents.ContainsKey((int)elapsedTime))
                 {
-                    levelEvents[(int)elapsedTime].Apply(this, nextTurnReaction);
+                    if (!goalComing)
+                        levelEvents[(int)elapsedTime].Apply(this, nextTurnReaction);
                     levelEvents.Remove((int)elapsedTime);
                     eventComing = false;
+                }
+
+                // Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
+                if (progress >= 100) {
+                    events[PRO_GOAL].Apply (this, nextTurnReaction); // La acción de teamGoalEvent modifica el valor de progress y Score.
+                    goalComing = false;
+				}
+				else if (progress <= 0) {
+                    events[CONTRA_GOAL].Apply (this, nextTurnReaction); // La acción de enemyGoalEvent modifica el valor de progress y Score.
+                    goalComing = false;
                 }
 
                 // Checa si ocurrira un evento pronto 
@@ -396,6 +405,7 @@ public class GameManager : MonoBehaviour {
         turnTime = currentLevel.turnDelay;
         nextTurnReaction = null;
         eventComing = false;
+        goalComing = false;
 
 		// Cargar eventos
 		int eventsTime = 0;
@@ -425,7 +435,7 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void AddProgress(int amount){
-		progress += currentLevel.deltaProgress;
+		progress += amount;
 		if (progress > 100)
 			progress = 100;
 		if (progress < 0)
@@ -442,7 +452,9 @@ public class GameManager : MonoBehaviour {
     }
 
     void ChangeProgress(int amount){
-		int randomNumber = Random.Range (0, 101);
+        // Sustituir después
+        //int randomNumber = Random.Range(0, 101);
+        randomNumber = Random.Range (0, 101);
 		//Debug.Log (randomNumber);
 		if (randomNumber <= luck) {
 			AddProgress (currentLevel.deltaProgress);
@@ -475,14 +487,16 @@ public class GameManager : MonoBehaviour {
         return isPeeing;
     }
 
-    public bool EventComing()
+    public bool IsEventComing()
     {
         return eventComing;
     }
 
     public string NextEvent()
     {
-        return levelEvents.OrderBy(k => k.Key).First().Value.GetName();
+        if (levelEvents.Count > 0)
+            return levelEvents.OrderBy(k => k.Key).First().Value.GetName();
+        return "";
     }
 
     public int GetScore(string team)
