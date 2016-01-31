@@ -6,20 +6,23 @@ public class Pee : MonoBehaviour {
 
     //Variable que buscara el int del nivel de pipi, valor de 0 a 100
     //Sustituir por la variable real
-    [Range (0, 100)]
-    public int nivelPipi;
+    //[Range (0, 100)]
     public float secondsForDoingPee;
-    
+
+    private int nivelPipi;
     private Slider peeBar;
+    private GameManager gameManager;
 	// Use this for initialization
 	void Start () {
         peeBar = GetComponent<Slider>();
-
+        gameManager = GameObject.FindObjectOfType<GameManager>().GetComponent<GameManager>();
+        
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        peeBar.value = nivelPipi;
+        //nivelPipi = gameManager.GetPee();
+        //peeBar.value = nivelPipi;
         if (nivelPipi >= 100)
             emptyPee();
 	}
@@ -27,7 +30,7 @@ public class Pee : MonoBehaviour {
     //Agrega el valor de la cerveza ingeridas
     public void setAmountPee(int amount)
     {
-        nivelPipi = +amount;
+      // gameManager.a
     }
     //Cuando se vaya al baño
     public void emptyPee()

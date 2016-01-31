@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour {
     #endregion
 
     // Duración del juego (Nivel) en segundos
-    const float GAME_DURATION = 45.0f;
+    public const float GAME_DURATION = 45.0f;
 
     const float LUCK_MULTIPLIER = 2;
 
