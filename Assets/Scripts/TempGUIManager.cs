@@ -35,6 +35,7 @@ public class TempGUIManager : MonoBehaviour {
 
     public Text txtActiveReaction;
 
+    public Text txtrandom;
     // Use this for initialization
     void Start()
     {
@@ -54,7 +55,7 @@ public class TempGUIManager : MonoBehaviour {
         txtFlag.enabled = GameManager.reactions[GameManager.FLAG].IsCool();
         txtCelebrate.enabled = GameManager.reactions[GameManager.CELEBRATE].IsCool();
 
-        txtEventComing.enabled = txtEvent.enabled = gameManager.EventComing();
+        txtEventComing.enabled = txtEvent.enabled = gameManager.IsEventComing();
         txtEvent.text = gameManager.NextEvent();
 
         txtProScore.text = gameManager.GetScore(GameManager.PRO_PLAYER).ToString();
@@ -71,5 +72,7 @@ public class TempGUIManager : MonoBehaviour {
         txtContraGoal.enabled = gameManager.ContraGoalNear();
 
         txtActiveReaction.text = gameManager.GetActiveReaction();
+
+        txtrandom.text = gameManager.randomNumber.ToString();
     }
 }
