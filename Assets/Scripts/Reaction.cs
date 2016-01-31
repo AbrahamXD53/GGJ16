@@ -11,18 +11,17 @@ public class Reaction {
     int counter;
     Action<GameManager> action;
 
-
     public static void Update()
     {
         foreach (var reaction in reactions) reaction.addSecond();
     }
+
     public Reaction(int CoolDown, Action<GameManager> action)
     {
         reactions.Add(this);
         this.action = action;
         this.coolDown = CoolDown;
     }
-
 
     public void addSecond()
     {
