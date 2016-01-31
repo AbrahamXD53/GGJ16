@@ -9,12 +9,13 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour {
 
-    #region Debugging
+    #region Variables para Debug
     public static string eventOutput = "";
     public static string reactionOutput = "";
     public int randomNumber = 0;
     #endregion
 
+    #region Constants
     public const int INITIAL_LUCK = 50;
     public const int INITIAL_PROGRESS = 50;
     public const int FAIL_PROGRESS = 30;
@@ -40,6 +41,7 @@ public class GameManager : MonoBehaviour {
     public const string SHOUT = "shout";
     public const string FLAG = "flag"; 
     public const string CELEBRATE = "celebrate";
+    #endregion
     #endregion
 
     // Duración del juego (Nivel) en segundos
@@ -534,6 +536,14 @@ public class GameManager : MonoBehaviour {
             return nextTurnReaction.GetName();
         }
         return "";
+    }
+
+    public void SetActiveReaction(string name)
+    {
+        if (nextTurnReaction != null && reactions[name].IsCool())
+        {
+            nextTurnReaction = reactions[name];
+        }
     }
 
     public bool GameOver()
