@@ -20,7 +20,6 @@ public class TempGUIManager : MonoBehaviour {
     public Text txtEvent;
 
     public Text txtEventOutput;
-
     public Text txtReactionOutput;
 
     public Text txtProScore;
@@ -36,6 +35,7 @@ public class TempGUIManager : MonoBehaviour {
     public Text txtActiveReaction;
 
     public Text txtrandom;
+    
     // Use this for initialization
     void Start()
     {
@@ -45,10 +45,8 @@ public class TempGUIManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         txtLuck.text = gameManager.GetLuck().ToString();
-        txtPee.text = gameManager.GetPee().ToString();
         txtProgress.text = gameManager.GetProgress().ToString();
-
-        txtTime.text = ((int)gameManager.GetElapsedTime()).ToString();
+        txtPee.text = gameManager.GetPee().ToString();
 
         txtBeer.enabled = GameManager.reactions[GameManager.BEER].IsCool();
         txtShout.enabled = GameManager.reactions[GameManager.SHOUT].IsCool();
@@ -56,18 +54,20 @@ public class TempGUIManager : MonoBehaviour {
         txtCelebrate.enabled = GameManager.reactions[GameManager.CELEBRATE].IsCool();
 
         txtEventComing.enabled = txtEvent.enabled = gameManager.IsEventComing();
+
+        txtEventOutput.text = GameManager.eventOutput;
+        txtReactionOutput.text = GameManager.reactionOutput;
+
+        txtTime.text = ((int)gameManager.GetElapsedTime()).ToString();
         txtEvent.text = gameManager.NextEvent();
 
         txtProScore.text = gameManager.GetScore(GameManager.PRO_PLAYER).ToString();
         txtContraScore.text = gameManager.GetScore(GameManager.CONTRA_PLAYER).ToString();
 
-        txtEventOutput.text = GameManager.eventOutput;
-        txtReactionOutput.text = GameManager.reactionOutput;
-
-        txtIsPeing.enabled = gameManager.IsPeing();
-
         txtLevel.text = gameManager.GetLevelNumber().ToString();
 
+        txtIsPeing.enabled = gameManager.IsPeing();
+       
         txtProGoal.enabled = gameManager.ProGoalNear();
         txtContraGoal.enabled = gameManager.ContraGoalNear();
 
