@@ -271,10 +271,11 @@ public class GameManager : MonoBehaviour {
 		LoadLevel(levelNumber);
 	}
 
-	void Update () {
-		if (inGame && ! isGameOver) {
-			turnTime -= Time.deltaTime;
-			elapsedTime += Time.deltaTime;
+    void Update() {
+        if (inGame && !isGameOver)
+        {
+            turnTime -= Time.deltaTime;
+            elapsedTime += Time.deltaTime;
 
             if (isPeeing)
             {
@@ -287,31 +288,32 @@ public class GameManager : MonoBehaviour {
                 }
             }
 
-            // Utiliza reacción (Modifican para que esto se haga con click)
-            if (nextTurnReaction == null) {
-                if (Input.GetKey(KeyCode.A) && reactions[BEER].IsCool()) {
-                    nextTurnReaction = reactions[BEER];
-                }
-                else if (Input.GetKey(KeyCode.S) && reactions[SHOUT].IsCool())
-                {
-                    nextTurnReaction = reactions[SHOUT];
-                }
-                else if (Input.GetKey(KeyCode.D) && reactions[FLAG].IsCool())
-                {
-                    nextTurnReaction = reactions[FLAG];
-                }
-                else if (Input.GetKey(KeyCode.F) && reactions[CELEBRATE].IsCool())
-                {
-                    nextTurnReaction = reactions[CELEBRATE];
-                }
+            // Utiliza reacción (Modifican para que esto se haga con click)         
+            if (Input.GetKey(KeyCode.A) && reactions[BEER].IsCool())
+            {
+                nextTurnReaction = reactions[BEER];
+            }
+            else if (Input.GetKey(KeyCode.S) && reactions[SHOUT].IsCool())
+            {
+                nextTurnReaction = reactions[SHOUT];
+            }
+            else if (Input.GetKey(KeyCode.D) && reactions[FLAG].IsCool())
+            {
+                nextTurnReaction = reactions[FLAG];
+            }
+            else if (Input.GetKey(KeyCode.F) && reactions[CELEBRATE].IsCool())
+            {
+                nextTurnReaction = reactions[CELEBRATE];
             }
 
-			// Fin del nivel
-			if (elapsedTime >= GAME_DURATION) {
-				
-				if (teamGoals > enemyGoals) {
-					// Nivel superado, cargar siguiente
-					levelNumber++;
+            // Fin del nivel
+            if (elapsedTime >= GAME_DURATION)
+            {
+
+                if (teamGoals > enemyGoals)
+                {
+                    // Nivel superado, cargar siguiente
+                    levelNumber++;
                     inGame = false;
 
                     // Ultimo nivel superado
@@ -321,34 +323,36 @@ public class GameManager : MonoBehaviour {
                         SceneManager.LoadScene("EndScene");
                     }
 
-					LoadLevel (levelNumber);
+                    LoadLevel(levelNumber);
                     return;
-				} 
-				else {
+                }
+                else {
                     inGame = false;
-					isGameOver = true;
-					SceneManager.LoadScene("GameOverScene");
-				}
-			}
+                    isGameOver = true;
+                    SceneManager.LoadScene("GameOverScene");
+                }
+            }
 
-			// Cada turno
-			if (turnTime <= 0) {
+            // Cada turno
+            if (turnTime <= 0)
+            {
                 // Reinicia tiempo para siguiente turno
                 turnTime += currentLevel.turnDelay;
 
-				Reaction.Update ();
+                Reaction.Update();
 
-				// Modificar los valores de la suerte y del progreso de acuerdo al nivel
-				AddLuck (currentLevel.deltaLuck);
-				ChangeProgress (currentLevel.deltaProgress);
+                // Modificar los valores de la suerte y del progreso de acuerdo al nivel
+                AddLuck(currentLevel.deltaLuck);
+                ChangeProgress(currentLevel.deltaProgress);
                 if (pee >= 100)
                     isPeeing = true;
 
                 // Si no es periodo de evento y se utilizo una reacción aplicar efecto
-				if (nextTurnReaction != null && ! isPeeing && ! eventComing && !goalComing) {
-					nextTurnReaction.Apply (this);
-					nextTurnReaction = null;
-				}
+                if (nextTurnReaction != null && !isPeeing && !eventComing && !goalComing)
+                {
+                    nextTurnReaction.Apply(this);
+                    nextTurnReaction = null;
+                }
 
                 // Si el progress es cercano al 100, prepararse para reaccionar a tiro de gol.
                 if (ProGoalNear() || ContraGoalNear())
@@ -357,7 +361,8 @@ public class GameManager : MonoBehaviour {
                 }
 
                 // Si estuviste cerca de Gol pero ya no 
-                if (!ProGoalNear() && !ContraGoalNear() && goalComing) { 
+                if (!ProGoalNear() && !ContraGoalNear() && goalComing)
+                {
                     goalComing = false;
                 }
 
@@ -371,12 +376,14 @@ public class GameManager : MonoBehaviour {
                 }
 
                 // Si el progress llega a 100 se dispara el evento gol de nuestro equipo.
-                if (progress >= 100) {
-                    events[PRO_GOAL].Apply (this, nextTurnReaction); // La acción de teamGoalEvent modifica el valor de progress y Score.
+                if (progress >= 100)
+                {
+                    events[PRO_GOAL].Apply(this, nextTurnReaction); // La acción de teamGoalEvent modifica el valor de progress y Score.
                     goalComing = false;
-				}
-				else if (progress <= 0) {
-                    events[CONTRA_GOAL].Apply (this, nextTurnReaction); // La acción de enemyGoalEvent modifica el valor de progress y Score.
+                }
+                else if (progress <= 0)
+                {
+                    events[CONTRA_GOAL].Apply(this, nextTurnReaction); // La acción de enemyGoalEvent modifica el valor de progress y Score.
                     goalComing = false;
                 }
 
@@ -386,8 +393,8 @@ public class GameManager : MonoBehaviour {
                     eventComing = true;
                 }
             }
-		}
-        else if(!isGameOver)
+        } 
+        else if (!isGameOver)
         {
             Debug.Log("Presiona para comenzar.");
             if (Input.anyKey) inGame = true;
