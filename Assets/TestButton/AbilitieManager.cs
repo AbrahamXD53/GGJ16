@@ -30,22 +30,25 @@ public class AbilitieManager : MonoBehaviour
         if (GameManager.reactions[reactions[ability]].IsCool())
         {   
             //Cambia estado a enfriamiento
-           // abilities[ability].GetComponent<AbilitieButton>().setCool();
-            //Cambiamos el color a uno obsucro
-            Image myImageButton = abilities[ability].GetComponent<Image>();
-            Color temp = myImageButton.color;
-            temp.a = 0.5f;
-            myImageButton.color = temp;
-            //Cambia a estado de enfriamiento
-            abilities[ability].GetComponent<Animator>().SetBool("isActivated", false);
-            GameObject childMask = abilities[ability].transform.GetChild(1).gameObject;
-            childMask.SetActive(true);
+           // abilities[ability].GetComponent<AbilitieButton>().setCool();            
             
             gameManager.SetActiveReaction(reactions[ability]);
             GamePlaying.game.player.SetTrigger(names[ability]);
             Debug.Log(GameManager.reactions[GameManager.BEER].GetTimeToCool());
         }
+    }
 
+    public void AnimationColdDown(int ability)
+    {
+        //Cambiamos el color a uno obsucro
+        Image myImageButton = abilities[ability].GetComponent<Image>();
+        Color temp = myImageButton.color;
+        temp.a = 0.5f;
+        myImageButton.color = temp;
+        //Cambia a estado de enfriamiento
+        abilities[ability].GetComponent<Animator>().SetBool("isActivated", false);
+        GameObject childMask = abilities[ability].transform.GetChild(1).gameObject;
+        childMask.SetActive(true);
     }
 
 }
